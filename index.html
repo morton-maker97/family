@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Archive</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Georgia,serif;background:#3B1F0F;color:#fff;min-height:100vh;}
+button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
+
+/* ── NAV ── */
+#nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:48px;background:#2A1508;border-bottom:1px solid #5a3520;position:sticky;top:0;z-index:100;}
+.nav-brand{font-size:15px;font-weight:500;color:#fff;letter-spacing:.03em;}
+.nav-links{display:flex;gap:8px;}
+.nav-btn{font-size:12px;background:none;border:1px solid #5a3520;color:#fff;padding:6px 16px;}
+.nav-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+
+/* ── TOOLBAR ── */
+#toolbar{display:flex;align-items:center;gap:12px;padding:8px 20px;background:#2A1508;border-bottom:1px solid #5a3520;}
+#toolbar span{font-size:12px;color:#fff;min-width:38px;text-align:center;}
+.zoom-btn{width:28px;height:28px;border:1px solid #5a3520;background:#3B1F0F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;}
+.zoom-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.hint-txt{font-size:11px;color:#c8a882;margin-left:4px;}
+
+/* ── TREE CANVAS ── */
+#canvas-wrap{overflow:auto;width:100%;height:calc(100vh - 96px);background:#3B1F0F;}
+#canvas{position:relative;transform-origin:top left;transition:transform .3s ease;padding:20px 40px 60px;}
+svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
+
+.node{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:pointer;}
+.node-photo{border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;transition:border-color .2s,transform .15s;color:#fff;width:52px;height:72px;}
+.node:hover .node-photo{border-color:#FA8072;transform:scale(1.06);}
+.node-name{font-size:10px;color:#fff;margin-top:6px;text-align:center;max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── ROOT ROW ── */
+#root-row{position:absolute;display:flex;align-items:center;gap:18px;}
+#root-photo{width:160px;height:100px;border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;flex-shrink:0;transition:border-color .2s;color:#fff;}
+#root-photo:hover{border-color:#FA8072;}
+#root-name-label{font-size:12px;font-weight:500;color:#fff;margin-bottom:5px;}
+#root-quote{font-size:12px;font-style:italic;color:#c8a882;line-height:1.5;border-left:2px solid #fff;padding-left:8px;cursor:pointer;max-width:180px;}
+#root-quote:hover{color:#fff;}
+
+/* ── GRID VIEW ── */
+#grid-view{display:none;overflow-y:auto;height:calc(100vh - 96px);padding:24px;background:#3B1F0F;}
+.grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;}
+.grid-card{cursor:pointer;display:flex;flex-direction:column;align-items:center;padding:10px 6px;background:#2A1508;border:1px solid #5a3520;transition:border-color .15s;}
+.grid-card:hover{border-color:#FA8072;}
+.grid-card-img{width:100%;height:90px;background:#3B1F0F;border:1px solid #5a3520;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;}
+.grid-card-name{font-size:11px;color:#fff;margin-top:7px;text-align:center;}
+
+/* ── ABOUT PAGE ── */
+#about-page{display:none;overflow-y:auto;height:calc(100vh - 48px);background:#3B1F0F;padding:40px 48px;}
+.about-back{display:flex;align-items:center;gap:6px;font-size:13px;color:#c8a882;background:none;border:none;padding:0;margin-bottom:32px;}
+.about-back:hover{color:#FA8072;}
+.about-title{font-size:22px;font-weight:500;color:#fff;margin-bottom:20px;}
+.about-body{font-size:14px;color:#c8a882;line-height:1.8;margin-bottom:24px;white-space:pre-wrap;}
+.about-edit-btn{font-size:12px;padding:7px 16px;border:1px solid #5a3520;background:#2A1508;color:#c8a882;}
+.about-edit-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.about-textarea{width:100%;max-width:700px;min-height:160px;border:1px solid #5a3520;padding:10px;font-size:13px;resize:vertical;background:#2A1508;color:#fff;font-family:Georgia,serif;line-height:1.8;display:none;}
+.about-save-btn{font-size:12px;padding:7px 16px;border:1px solid #fff;background:#3B1F0F;color:#fff;display:none;}
+.about-save-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+
+/* ── DETAIL PANEL (PROFILE SIDEBAR) ── */
+#detail-panel{position:fixed;top:0;left:-380px;width:350px;height:100%;background:#2A1508;border-right:1px solid #5a3520;z-index:200;display:flex;flex-direction:column;transition:left .38s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
+#detail-panel.open{left:0;}
+.dp-inner{padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
+.back-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:#fff;background:none;border:none;padding:0;}
+.back-btn:hover{color:#FA8072;}
+#detail-photo-wrap{width:100%;height:200px;background:#3B1F0F;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-size:56px;color:#fff;}
+#detail-name{font-size:17px;font-weight:500;color:#fff;}
+#detail-rel{font-size:12px;color:#c8a882;}
+.dp-btn{font-size:12px;padding:8px 16px;border:1px solid #fff;background:#3B1F0F;color:#fff;margin-right:8px;}
+.dp-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.dp-textarea{width:100%;min-height:64px;border:1px solid #5a3520;padding:8px;font-size:12px;resize:vertical;background:#3B1F0F;color:#fff;font-family:Georgia,serif;}
+.dp-divider{height:1px;background:#5a3520;margin:4px 0;}
+.dp-label{font-size:10px;color:#c8a882;letter-spacing:.05em;margin-bottom:4px;}
+#sources-list{display:flex;flex-direction:column;gap:5px;}
+.src-item{display:flex;align-items:flex-start;gap:5px;font-size:11px;color:#c8a882;line-height:1.5;}
+.src-num{color:#8a6040;min-width:14px;}
+.src-del{background:none;border:none;color:#5a3520;font-size:13px;margin-left:auto;padding:0 2px;cursor:pointer;}
+.src-del:hover{color:#FA8072;}
+
+/* ── BREADCRUMB ── */
+#breadcrumb-bar{
+  display:none;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:0;
+  padding:8px 0 4px;
+  border-bottom:1px solid #5a3520;
+  font-size:11px;
+  color:#8a6040;
+}
+#breadcrumb-bar.visible{display:flex;}
+.bc-item{display:flex;align-items:center;}
+.bc-link{
+  color:#c8a882;cursor:pointer;padding:1px 3px;
+  background:none;border:none;
+  font-size:11px;font-family:Georgia,serif;
+  text-decoration:underline;text-underline-offset:2px;
+}
+.bc-link:hover{color:#FA8072;}
+.bc-current{color:#fff;font-weight:500;padding:1px 3px;}
+.bc-sep{color:#5a3520;margin:0 1px;font-size:11px;user-select:none;}
+
+/* ── CONTACT / QUOTE OVERLAY ── */
+#overlay-panel{display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;}
+#overlay-panel.open{display:flex;}
+#overlay-bg{position:fixed;inset:0;background:rgba(20,8,2,.85);}
+#overlay-box{position:relative;background:#2A1508;border:1px solid #5a3520;padding:28px;width:400px;max-width:96vw;z-index:2;}
+#overlay-box h3{font-size:15px;color:#fff;margin-bottom:16px;}
+
+.ov-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid #5a3520;}
+.ov-tab{font-size:12px;padding:7px 0;background:none;border:none;border-bottom:2px solid transparent;color:#c8a882;}
+.ov-tab.active{color:#fff;border-bottom:2px solid #fff;}
+.ov-tab:hover{color:#FA8072;}
+.ov-tab:first-child{margin-right:24px;}
+
+.ov-field{display:flex;flex-direction:column;gap:6px;margin-bottom:24px;}
+.ov-field label{font-size:12px;color:#fff;}
+.ov-input{width:100%;border:1px solid #5a3520;background:#3B1F0F;color:#fff;padding:8px 10px;font-size:12px;font-family:Georgia,serif;}
+.ov-input:focus{border-color:#c8a882;outline:none;}
+.ov-textarea{width:100%;border:1px solid #5a3520;background:#3B1F0F;color:#fff;padding:8px 10px;font-size:12px;font-family:Georgia,serif;min-height:80px;resize:vertical;}
+.ov-textarea:focus{border-color:#c8a882;outline:none;}
+
+.desc-text-block{font-size:13px;color:#c8a882;line-height:1.7;margin-bottom:8px;}
+.desc-edit-inline-btn{font-size:11px;padding:4px 10px;border:1px solid #5a3520;background:none;color:#8a6040;}
+.desc-edit-inline-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+
+.ov-btn-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;}
+.ov-close{font-size:12px;padding:8px 20px;border:1px solid #5a3520;background:none;color:#fff;}
+.ov-close:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.ov-submit{font-size:12px;padding:8px 20px;border:1px solid #fff;background:#3B1F0F;color:#fff;}
+.ov-submit:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.ov-sent{display:none;font-size:12px;color:#8BC34A;margin-top:12px;}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <span class="nav-brand">Family Archive</span>
+  <div class="nav-links">
+    <button class="nav-btn" onclick="showAbout()">About</button>
+    <button class="nav-btn" onclick="toggleGrid()" id="grid-btn">View as grid</button>
+    <button class="nav-btn" onclick="showOverlay('contact')">Contact</button>
+  </div>
+</nav>
+
+<!-- TREE VIEW -->
+<div id="toolbar">
+  <button class="zoom-btn" onclick="zoom(-1)" aria-label="zoom out">−</button>
+  <span id="zoom-label">100%</span>
+  <button class="zoom-btn" onclick="zoom(1)" aria-label="zoom in">+</button>
+  <span class="hint-txt">scroll left / right to see all branches · click any photo</span>
+</div>
+
+<div id="canvas-wrap">
+  <div id="canvas">
+    <svg class="connectors" id="svg-lines"></svg>
+    <div id="root-row">
+      <div id="root-photo" onclick="openPanel('root')">&#128100;</div>
+      <div>
+        <div id="root-name-label">Your Name</div>
+        <div id="root-quote" onclick="editQuote()">"Add a quote or note…"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRID VIEW -->
+<div id="grid-view">
+  <div class="grid-inner" id="grid-inner"></div>
+</div>
+
+<!-- ABOUT PAGE -->
+<div id="about-page">
+  <button class="about-back" onclick="hideAbout()">
+    <i class="ti ti-arrow-left" aria-hidden="true"></i> Back to family tree
+  </button>
+  <div class="about-title">About this archive</div>
+  <div class="about-body" id="about-body-text"></div>
+  <textarea class="about-textarea" id="about-textarea"></textarea>
+  <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+    <button class="about-edit-btn" id="about-edit-btn" onclick="startAboutEdit()">
+      <i class="ti ti-edit" aria-hidden="true"></i> Edit
+    </button>
+    <button class="about-save-btn" id="about-save-btn" onclick="saveAbout()">
+      <i class="ti ti-check" aria-hidden="true"></i> Save
+    </button>
+  </div>
+</div>
+
+<!-- PROFILE SIDEBAR -->
+<div id="detail-panel">
+  <div class="dp-inner">
+    <button class="back-btn" onclick="closePanel()">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> Back
+    </button>
+    <nav id="breadcrumb-bar" aria-label="Lineage breadcrumb"></nav>
+    <div id="detail-photo-wrap">&#128100;</div>
+    <div>
+      <div id="detail-name"></div>
+      <div id="detail-rel"></div>
+    </div>
+    <div>
+      <div id="detail-desc-text" style="font-size:13px;color:#c8a882;line-height:1.6;min-height:36px;"></div>
+      <textarea id="detail-edit-area" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Write about this person…"></textarea>
+      <div style="display:flex;margin-top:10px;">
+        <button class="dp-btn" id="desc-edit-btn" onclick="startDescEdit()">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit
+        </button>
+        <button class="dp-btn" id="desc-save-btn" style="display:none;" onclick="saveDesc()">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+      </div>
+    </div>
+    <div class="dp-divider"></div>
+    <div>
+      <div class="dp-label">Sources &amp; citations</div>
+      <div id="sources-list"></div>
+      <textarea id="source-input" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Paste a source, citation, or URL…"></textarea>
+      <div style="display:flex;margin-top:10px;">
+        <button class="dp-btn" id="src-add-btn" onclick="startSrcAdd()">
+          <i class="ti ti-plus" aria-hidden="true"></i> Add source
+        </button>
+        <button class="dp-btn" id="src-save-btn" style="display:none;" onclick="saveSrc()">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT / QUOTE OVERLAY -->
+<div id="overlay-panel">
+  <div id="overlay-bg" onclick="closeOverlay()"></div>
+  <div id="overlay-box">
+    <h3 id="ov-title"></h3>
+    <div id="ov-content"></div>
+    <div class="ov-btn-row">
+      <button class="ov-close" onclick="closeOverlay()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   DATA — edit people, connections, and
+   positions here to customise the tree.
+   ════════════════════════════════════════ */
+
+const people = [
+  { id:'root', name:'Your Name',         rel:'You',                    ico:'&#128100;' },
+  { id:'p1',   name:'Father',            rel:'Father',                 ico:'&#128104;' },
+  { id:'p2',   name:'Mother',            rel:'Mother',                 ico:'&#128105;' },
+  { id:'p3',   name:'Stepfather',        rel:'Stepfather',             ico:'&#128104;' },
+  { id:'p4',   name:'Stepmother',        rel:'Stepmother',             ico:'&#128105;' },
+  { id:'p5',   name:'Guardian',          rel:'Guardian',               ico:'&#129489;' },
+  { id:'p6',   name:'Adoptive Father',   rel:'Adoptive Father',        ico:'&#128104;' },
+  { id:'p7',   name:'Adoptive Mother',   rel:'Adoptive Mother',        ico:'&#128105;' },
+  { id:'p8',   name:'Foster Parent',     rel:'Foster Parent',          ico:'&#129489;' },
+  { id:'gp1',  name:'Grandfather',       rel:'Paternal Grandfather',   ico:'&#128116;' },
+  { id:'gp2',  name:'Grandmother',       rel:'Paternal Grandmother',   ico:'&#128117;' },
+  { id:'gp3',  name:'Grandfather',       rel:'Maternal Grandfather',   ico:'&#128116;' },
+  { id:'gp4',  name:'Grandmother',       rel:'Maternal Grandmother',   ico:'&#128117;' },
+  { id:'gp5',  name:'Grandfather',       rel:'Step-Grandfather',       ico:'&#128116;' },
+  { id:'gp6',  name:'Grandmother',       rel:'Step-Grandmother',       ico:'&#128117;' },
+  { id:'gg1',  name:'Great-Grandfather', rel:'Pat. Great-Grandfather', ico:'&#128116;' },
+  { id:'gg2',  name:'Great-Grandmother', rel:'Pat. Great-Grandmother', ico:'&#128117;' },
+  { id:'gg3',  name:'Great-Grandfather', rel:'Mat. Great-Grandfather', ico:'&#128116;' },
+  { id:'gg4',  name:'Great-Grandmother', rel:'Mat. Great-Grandmother', ico:'&#128117;' },
+  { id:'gg5',  name:'Great-Grandfather', rel:'Step Great-Grandfather', ico:'&#128116;' },
+  { id:'gg6',  name:'Great-Grandmother', rel:'Step Great-Grandmother', ico:'&#128117;' },
+];
+
+/* parent → child connections */
+const conns = [
+  ['root','p1'], ['root','p2'], ['root','p3'], ['root','p4'],
+  ['root','p5'], ['root','p6'], ['root','p7'], ['root','p8'],
+  ['p1','gp1'],  ['p1','gp2'],
+  ['p2','gp3'],  ['p2','gp4'],
+  ['p3','gp5'],  ['p3','gp6'],
+  ['gp1','gg1'], ['gp1','gg2'],
+  ['gp3','gg3'], ['gp3','gg4'],
+  ['gp5','gg5'], ['gp5','gg6'],
+];
+
+/* row groupings */
+const row1Ids = ['p1','p2','p3','p4','p5','p6','p7','p8'];
+const row2Ids = ['gp1','gp2','gp3','gp4','gp5','gp6'];
+const row3Ids = ['gg1','gg2','gg3','gg4','gg5','gg6'];
+
+/* layout constants */
+const NW = 52, NH = 72;          /* node photo width / height */
+const RW = 160, RH = 100;        /* root photo width / height */
+const HGAP = 100;                 /* horizontal gap between nodes */
+const ROW1Y = 180, ROW2Y = 340, ROW3Y = 500;
+const CONNECTOR_GAP = 8;         /* gap between line end and photo edge */
+
+/* ════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════ */
+const descs = {}, srcs = {};
+let activeId   = null;
+let zoomLevel  = 1;
+let rootQuote  = '"Add a quote or note…"';
+let gridMode   = false;
+let contactTab = 'feedback';
+
+let aboutText     = 'This is a family archive website. Click any photo in the tree to view profiles, add descriptions, and cite sources.\n\nScroll left and right on the tree to see all branches. Use the zoom controls to navigate generations, or switch to grid view for a complete overview.';
+let feedbackIntro = 'Send us your thoughts or corrections about this archive.';
+let contribIntro  = 'Submit a new branch to the tree.\n\nHave records, photos, or information about a family member not yet included? Share them here and we\'ll review your contribution.';
+
+const pos = {};
+
+/* ════════════════════════════════════════
+   TREE BUILDING
+   ════════════════════════════════════════ */
+function computePos() {
+  const maxCols = Math.max(row1Ids.length, row2Ids.length, row3Ids.length);
+  const totalW  = maxCols * (NW + HGAP) + 240;
+  const cx      = totalW / 2;
+  pos['root'] = { x: cx, y: 20 };
+  [row1Ids, row2Ids, row3Ids].forEach((ids, ri) => {
+    const y = [ROW1Y, ROW2Y, ROW3Y][ri];
+    ids.forEach((id, i) => {
+      const startX = cx - (ids.length - 1) * (NW + HGAP) / 2;
+      pos[id] = { x: startX + i * (NW + HGAP), y };
+    });
+  });
+  return totalW;
+}
+
+function buildTree() {
+  const totalW  = computePos();
+  const canvas  = document.getElementById('canvas');
+  const svg     = document.getElementById('svg-lines');
+  const totalH  = ROW3Y + NH + 100;
+
+  canvas.style.width  = totalW + 'px';
+  canvas.style.height = totalH + 'px';
+  svg.style.width     = totalW + 'px';
+  svg.style.height    = totalH + 'px';
+  svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
+
+  /* position root row */
+  const rp = pos['root'];
+  const rr = document.getElementById('root-row');
+  rr.style.left = (rp.x - RW / 2 - 10) + 'px';
+  rr.style.top  = rp.y + 'px';
+
+  /* build person nodes */
+  people.filter(p => p.id !== 'root').forEach(p => {
+    const pp = pos[p.id]; if (!pp) return;
+    const el = document.createElement('div');
+    el.className = 'node';
+    el.id        = 'node-' + p.id;
+    el.style.left = (pp.x - NW / 2) + 'px';
+    el.style.top  = pp.y + 'px';
+    el.innerHTML  = `<div class="node-photo">${p.ico}</div><div class="node-name">${p.name}</div>`;
+    el.onclick    = () => openPanel(p.id);
+    canvas.appendChild(el);
+  });
+
+  /* draw connector lines */
+  conns.forEach(([a, b]) => {
+    const pa = pos[a], pb = pos[b];
+    let x1, y1;
+    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + RH + CONNECTOR_GAP; }
+    else              { x1 = pa.x;          y1 = pa.y + NH + CONNECTOR_GAP; }
+    const x2 = pb.x;
+    const y2 = pb.y - CONNECTOR_GAP;
+    const my = Math.round((y1 + y2) / 2);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    line.setAttribute('points', `${x1},${y1} ${x1},${my} ${x2},${my} ${x2},${y2}`);
+    line.setAttribute('fill',         'none');
+    line.setAttribute('stroke',       '#ffffff');
+    line.setAttribute('stroke-width', '1.2');
+    svg.appendChild(line);
+  });
+
+  buildGrid();
+  document.getElementById('about-body-text').textContent = aboutText;
+  document.getElementById('about-textarea').value        = aboutText;
+}
+
+function buildGrid() {
+  const gi = document.getElementById('grid-inner');
+  gi.innerHTML = '';
+  people.forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'grid-card';
+    c.innerHTML = `<div class="grid-card-img">${p.ico}</div><div class="grid-card-name">${p.name}</div>`;
+    c.onclick   = () => openPanel(p.id);
+    gi.appendChild(c);
+  });
+}
+
+/* ════════════════════════════════════════
+   VIEW SWITCHING
+   ════════════════════════════════════════ */
+function setView(view) {
+  document.getElementById('canvas-wrap').style.display  = view === 'tree'  ? 'block' : 'none';
+  document.getElementById('toolbar').style.display      = view === 'tree'  ? 'flex'  : 'none';
+  document.getElementById('grid-view').style.display    = view === 'grid'  ? 'block' : 'none';
+  document.getElementById('about-page').style.display   = view === 'about' ? 'block' : 'none';
+  gridMode = (view === 'grid');
+  document.getElementById('grid-btn').textContent = gridMode ? 'View as tree' : 'View as grid';
+}
+
+function toggleGrid() { setView(gridMode ? 'tree' : 'grid'); closePanel(); }
+function showAbout()  { setView('about'); closePanel(); }
+function hideAbout()  { setView('tree'); }
+
+/* ════════════════════════════════════════
+   ZOOM
+   ════════════════════════════════════════ */
+function zoom(d) {
+  zoomLevel = Math.min(2, Math.max(0.25, zoomLevel + d * 0.15));
+  document.getElementById('canvas').style.transform = `scale(${zoomLevel})`;
+  document.getElementById('zoom-label').textContent  = Math.round(zoomLevel * 100) + '%';
+  updateVis();
+}
+
+function updateVis() {
+  const lv = {};
+  row1Ids.forEach(id => lv[id] = 1);
+  row2Ids.forEach(id => lv[id] = 2);
+  row3Ids.forEach(id => lv[id] = 3);
+  const sh = { 0: true, 1: zoomLevel >= 0.45, 2: zoomLevel >= 0.6, 3: zoomLevel >= 0.75 };
+  people.filter(p => p.id !== 'root').forEach(p => {
+    const el = document.getElementById('node-' + p.id);
+    if (el) el.style.opacity = sh[lv[p.id] ?? 0] ? '1' : '0.08';
+  });
+}
+
+/* ════════════════════════════════════════
+   PROFILE PANEL
+   ════════════════════════════════════════ */
+function openPanel(id) {
+  const p = people.find(x => x.id === id); if (!p) return;
+  activeId = id;
+  document.getElementById('detail-photo-wrap').innerHTML  = p.ico;
+  document.getElementById('detail-name').textContent      = p.name;
+  document.getElementById('detail-rel').textContent       = p.rel;
+  document.getElementById('detail-desc-text').textContent = descs[id] || 'No description yet.';
+  document.getElementById('detail-edit-area').value       = descs[id] || '';
+  document.getElementById('detail-edit-area').style.display  = 'none';
+  document.getElementById('desc-save-btn').style.display     = 'none';
+  document.getElementById('desc-edit-btn').style.display     = 'inline-block';
+  document.getElementById('source-input').style.display      = 'none';
+  document.getElementById('src-save-btn').style.display      = 'none';
+  document.getElementById('src-add-btn').style.display       = 'inline-block';
+  renderSrcs(id);
+  renderBreadcrumb(id);
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+  const bar = document.getElementById('breadcrumb-bar');
+  bar.innerHTML = '';
+  bar.classList.remove('visible');
+  activeId = null;
+}
+
+function startDescEdit() {
+  document.getElementById('detail-edit-area').style.display = 'block';
+  document.getElementById('desc-save-btn').style.display    = 'inline-block';
+  document.getElementById('desc-edit-btn').style.display    = 'none';
+  document.getElementById('detail-edit-area').focus();
+}
+
+function saveDesc() {
+  if (!activeId) return;
+  const v = document.getElementById('detail-edit-area').value.trim();
+  descs[activeId] = v;
+  document.getElementById('detail-desc-text').textContent    = v || 'No description yet.';
+  document.getElementById('detail-edit-area').style.display  = 'none';
+  document.getElementById('desc-save-btn').style.display     = 'none';
+  document.getElementById('desc-edit-btn').style.display     = 'inline-block';
+}
+
+function startSrcAdd() {
+  document.getElementById('source-input').style.display  = 'block';
+  document.getElementById('src-save-btn').style.display  = 'inline-block';
+  document.getElementById('src-add-btn').style.display   = 'none';
+  document.getElementById('source-input').focus();
+}
+
+function saveSrc() {
+  if (!activeId) return;
+  const v = document.getElementById('source-input').value.trim(); if (!v) return;
+  if (!srcs[activeId]) srcs[activeId] = [];
+  srcs[activeId].push(v);
+  document.getElementById('source-input').value          = '';
+  document.getElementById('source-input').style.display  = 'none';
+  document.getElementById('src-save-btn').style.display  = 'none';
+  document.getElementById('src-add-btn').style.display   = 'inline-block';
+  renderSrcs(activeId);
+}
+
+function delSrc(id, i) { srcs[id].splice(i, 1); renderSrcs(id); }
+
+function renderSrcs(id) {
+  const list = document.getElementById('sources-list');
+  list.innerHTML = '';
+  (srcs[id] || []).forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'src-item';
+    d.innerHTML = `<span class="src-num">[${i + 1}]</span><span style="flex:1">${s}</span><button class="src-del" onclick="delSrc('${id}',${i})">×</button>`;
+    list.appendChild(d);
+  });
+}
+
+/* ════════════════════════════════════════
+   ABOUT PAGE EDITING
+   ════════════════════════════════════════ */
+function startAboutEdit() {
+  document.getElementById('about-body-text').style.display = 'none';
+  document.getElementById('about-textarea').style.display  = 'block';
+  document.getElementById('about-textarea').value          = aboutText;
+  document.getElementById('about-edit-btn').style.display  = 'none';
+  document.getElementById('about-save-btn').style.display  = 'inline-block';
+  document.getElementById('about-textarea').focus();
+}
+
+function saveAbout() {
+  const v = document.getElementById('about-textarea').value.trim();
+  aboutText = v || aboutText;
+  document.getElementById('about-body-text').textContent   = aboutText;
+  document.getElementById('about-body-text').style.display = 'block';
+  document.getElementById('about-textarea').style.display  = 'none';
+  document.getElementById('about-edit-btn').style.display  = 'inline-block';
+  document.getElementById('about-save-btn').style.display  = 'none';
+}
+
+/* ════════════════════════════════════════
+   OVERLAY (CONTACT / QUOTE)
+   ════════════════════════════════════════ */
+function editQuote()  { showOverlay('quote'); }
+function saveQuote()  {
+  const v = document.getElementById('quote-input').value.trim();
+  rootQuote = v ? `"${v}"` : '"Add a quote or note…"';
+  document.getElementById('root-quote').textContent = rootQuote;
+  closeOverlay();
+}
+
+function showOverlay(type) {
+  document.getElementById('ov-title').textContent   = type === 'contact' ? 'Contact' : 'Edit quote';
+  document.getElementById('ov-content').innerHTML   =
+    type === 'contact' ? buildContact() :
+    `<div class="ov-field"><label>Quote or note</label>
+     <input class="ov-input" id="quote-input" type="text" value="${rootQuote.replace(/^"|"$/g, '')}"></div>
+     <div class="ov-btn-row"><button class="ov-submit" onclick="saveQuote()">Save</button></div>`;
+  document.getElementById('overlay-panel').classList.add('open');
+}
+
+function buildContact() {
+  const fbBody = `
+    <div style="margin-bottom:16px;">
+      <div class="desc-text-block" id="fb-intro-text">${feedbackIntro}</div>
+      <textarea class="dp-textarea" id="fb-intro-edit" style="display:none;margin-top:6px;" placeholder="Edit this description…"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="desc-edit-inline-btn" id="fb-intro-edit-btn" onclick="startIntroEdit('fb')">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit description
+        </button>
+        <button class="desc-edit-inline-btn" id="fb-intro-save-btn" style="display:none;" onclick="saveIntroEdit('fb')">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+      </div>
+    </div>
+    <div class="ov-field"><label>Your name</label><input class="ov-input" id="fb-name" type="text"></div>
+    <div class="ov-field"><label>Your email</label><input class="ov-input" id="fb-email" type="email"></div>
+    <div class="ov-field"><label>Email body</label><textarea class="ov-textarea" id="fb-msg"></textarea></div>
+    <div class="ov-btn-row"><button class="ov-submit" onclick="sendForm('fb')">Send feedback</button></div>
+    <div class="ov-sent" id="fb-sent">Sent! Thank you for your feedback.</div>`;
+
+  const ctBody = `
+    <div style="margin-bottom:16px;">
+      <div class="desc-text-block" id="ct-intro-text">${contribIntro}</div>
+      <textarea class="dp-textarea" id="ct-intro-edit" style="display:none;margin-top:6px;" placeholder="Edit this description…"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="desc-edit-inline-btn" id="ct-intro-edit-btn" onclick="startIntroEdit('ct')">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit description
+        </button>
+        <button class="desc-edit-inline-btn" id="ct-intro-save-btn" style="display:none;" onclick="saveIntroEdit('ct')">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+      </div>
+    </div>
+    <div class="ov-field"><label>Your name</label><input class="ov-input" id="ct-name" type="text"></div>
+    <div class="ov-field"><label>Your email</label><input class="ov-input" id="ct-email" type="email"></div>
+    <div class="ov-field"><label>Name of submission</label><input class="ov-input" id="ct-branch" type="text"></div>
+    <div class="ov-field"><label>Email body</label><textarea class="ov-textarea" id="ct-msg"></textarea></div>
+    <div class="ov-btn-row"><button class="ov-submit" onclick="sendForm('ct')">Submit contribution</button></div>
+    <div class="ov-sent" id="ct-sent">Submitted! We'll be in touch.</div>`;
+
+  return `<div class="ov-tabs">
+    <button class="ov-tab ${contactTab === 'feedback' ? 'active' : ''}" onclick="setTab('feedback')">Give feedback</button>
+    <button class="ov-tab ${contactTab === 'contrib'  ? 'active' : ''}" onclick="setTab('contrib')">Submit a contribution</button>
+  </div>
+  ${contactTab === 'feedback' ? fbBody : ctBody}`;
+}
+
+function setTab(t) {
+  contactTab = t;
+  document.getElementById('ov-content').innerHTML = buildContact();
+}
+
+function sendForm(type) {
+  const el = document.getElementById(type + '-sent');
+  if (el) el.style.display = 'block';
+}
+
+function startIntroEdit(prefix) {
+  const txt = document.getElementById(prefix + '-intro-text');
+  const ta  = document.getElementById(prefix + '-intro-edit');
+  ta.value = txt.textContent;
+  txt.style.display = 'none'; ta.style.display = 'block';
+  document.getElementById(prefix + '-intro-edit-btn').style.display = 'none';
+  document.getElementById(prefix + '-intro-save-btn').style.display = 'inline-block';
+  ta.focus();
+}
+
+function saveIntroEdit(prefix) {
+  const ta  = document.getElementById(prefix + '-intro-edit');
+  const txt = document.getElementById(prefix + '-intro-text');
+  const v   = ta.value.trim();
+  if (prefix === 'fb') feedbackIntro = v || feedbackIntro;
+  else                 contribIntro  = v || contribIntro;
+  txt.textContent   = prefix === 'fb' ? feedbackIntro : contribIntro;
+  txt.style.display = 'block'; ta.style.display = 'none';
+  document.getElementById(prefix + '-intro-edit-btn').style.display = 'inline-block';
+  document.getElementById(prefix + '-intro-save-btn').style.display = 'none';
+}
+
+function closeOverlay() {
+  document.getElementById('overlay-panel').classList.remove('open');
+}
+
+/* ════════════════════════════════════════
+   BREADCRUMB — builds lineage path from
+   any person back up to root
+   ════════════════════════════════════════ */
+
+/* Build a parent lookup from the conns array:
+   childId -> [parentId, parentId, ...] */
+function buildParentMap() {
+  const map = {};
+  conns.forEach(([parent, child]) => {
+    if (!map[child]) map[child] = [];
+    map[child].push(parent);
+  });
+  return map;
+}
+
+/* Return the shortest ancestor path from id → root as an array
+   [ rootId, ..., grandparentId, parentId, id ] */
+function getLineage(id) {
+  const parentMap = buildParentMap();
+
+  function climb(current, path) {
+    const parents = parentMap[current];
+    if (!parents || parents.length === 0) {
+      return [current, ...path];          /* reached root */
+    }
+    /* follow the first (primary) parent up the tree */
+    return climb(parents[0], [current, ...path]);
+  }
+
+  return climb(id, []);
+}
+
+function renderBreadcrumb(id) {
+  const bar = document.getElementById('breadcrumb-bar');
+  const lineage = getLineage(id);
+
+  /* If this is the root itself, no breadcrumb needed */
+  if (lineage.length <= 1) {
+    bar.innerHTML = '';
+    bar.classList.remove('visible');
+    return;
+  }
+
+  bar.classList.add('visible');
+  bar.innerHTML = lineage.map((pid, idx) => {
+    const person = people.find(p => p.id === pid);
+    const name   = person ? person.name : pid;
+    const isLast = idx === lineage.length - 1;
+
+    if (isLast) {
+      return `<span class="bc-item"><span class="bc-current">${name}</span></span>`;
+    }
+    const sep = idx < lineage.length - 1
+      ? `<span class="bc-sep" aria-hidden="true"> › </span>` : '';
+    return `<span class="bc-item">
+      <button class="bc-link" onclick="openPanel('${pid}')" title="Go to ${name}">${name}</button>
+      ${sep}
+    </span>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════ */
+buildTree();
+updateVis();
+</script>
+</body>
+</html>
