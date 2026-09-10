@@ -131,6 +131,13 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .msg-body{font-size:12px;color:#c8a882;white-space:pre-wrap;line-height:1.5;margin-bottom:8px;}
 .msg-empty{font-size:12px;color:#c8a882;}
 
+#crop-viewport{position:relative;width:260px;height:260px;max-width:100%;overflow:hidden;background:#000;margin:0 auto 16px;cursor:grab;touch-action:none;border:1px solid #5a3520;}
+#crop-viewport.dragging{cursor:grabbing;}
+#crop-viewport img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.crop-hint{font-size:11px;color:#c8a882;text-align:center;margin-bottom:16px;}
+.crop-zoom-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;color:#c8a882;font-size:14px;}
+.crop-zoom-row input[type=range]{flex:1;}
+
 #admin-banner{display:none;position:sticky;top:0;z-index:150;height:32px;box-sizing:border-box;padding:6px 12px;background:#FA8072;color:#14451e;font-size:12px;font-weight:500;letter-spacing:.02em;text-align:center;}
 body.admin-mode #nav{top:32px;}
 </style>
@@ -224,6 +231,11 @@ body.admin-mode #nav{top:32px;}
           <button type="button" class="desc-edit-inline-btn" onclick="document.getElementById('photo-file-input').click()">
             <i class="ti ti-upload" aria-hidden="true"></i> Upload from computer
           </button>
+          <button type="button" class="desc-edit-inline-btn" onclick="editPhotoCrop()">
+            <i class="ti ti-crop" aria-hidden="true"></i> Adjust crop
+          </button>
+        </div>
+        <div style="margin:-4px 0 8px;">
           <span id="photo-upload-status" style="font-size:11px;color:#c8a882;"></span>
         </div>
         <div class="dp-label">Description</div>
@@ -395,6 +407,13 @@ async function doLogout() {
    DOM-SAFE BUILDERS (avoid innerHTML for
    any data that came from the database)
    ════════════════════════════════════════ */
+function applyCropStyle(img, p) {
+  const x = p.photo_pos_x ?? 50, y = p.photo_pos_y ?? 50, z = p.photo_zoom ?? 1;
+  img.style.objectPosition = x + '% ' + y + '%';
+  img.style.transform = 'scale(' + z + ')';
+  img.style.transformOrigin = 'center';
+}
+
 function buildAvatar(p, className) {
   const wrap = document.createElement('div');
   wrap.className = className;
@@ -402,6 +421,7 @@ function buildAvatar(p, className) {
     const img = document.createElement('img');
     img.src = p.photo_url;
     img.alt = p.name || '';
+    applyCropStyle(img, p);
     wrap.appendChild(img);
   } else {
     wrap.textContent = p.icon || '👤';
@@ -458,6 +478,7 @@ function buildTree() {
     if (root.photo_url) {
       const img = document.createElement('img');
       img.src = root.photo_url; img.alt = root.name || '';
+      applyCropStyle(img, root);
       rootPhotoWrap.appendChild(img);
     } else {
       rootPhotoWrap.textContent = root.icon || '👤';
@@ -564,6 +585,7 @@ function openPanel(id) {
   photoWrap.innerHTML = '';
   if (p.photo_url) {
     const img = document.createElement('img'); img.src = p.photo_url; img.alt = p.name || '';
+    applyCropStyle(img, p);
     photoWrap.appendChild(img);
   } else {
     photoWrap.textContent = p.icon || '👤';
@@ -748,7 +770,7 @@ async function saveQuote() {
 }
 
 async function showOverlay(type) {
-  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages' };
+  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages', crop: 'Adjust photo crop' };
   document.getElementById('ov-title').textContent = titles[type] || '';
   const content = document.getElementById('ov-content');
   content.innerHTML = '';
@@ -774,8 +796,126 @@ async function showOverlay(type) {
     content.innerHTML = '';
     content.appendChild(await buildMessagesPanel());
     return;
+  } else if (type === 'crop') {
+    const loading = document.createElement('div'); loading.className = 'msg-empty'; loading.textContent = 'Loading photo…';
+    content.appendChild(loading);
+    document.getElementById('overlay-panel').classList.add('open');
+    content.innerHTML = '';
+    content.appendChild(await buildCropEditor());
+    return;
   }
   document.getElementById('overlay-panel').classList.add('open');
+}
+
+function editPhotoCrop() {
+  if (!isAdmin || !activeId) return;
+  const url = document.getElementById('edit-photo').value.trim();
+  if (!url) { alert('Add a photo first (paste a URL or upload one), then adjust its crop.'); return; }
+  showOverlay('crop');
+}
+
+function buildCropEditor() {
+  return new Promise((resolve) => {
+    const p = people.find(x => x.id === activeId);
+    const url = document.getElementById('edit-photo').value.trim() || p.photo_url;
+    const wrap = document.createElement('div');
+
+    const probe = new Image();
+    probe.onload = () => {
+      const state = {
+        x: p.photo_pos_x ?? 50,
+        y: p.photo_pos_y ?? 50,
+        zoom: p.photo_zoom ?? 1,
+        naturalW: probe.naturalWidth,
+        naturalH: probe.naturalHeight,
+        size: 260,
+      };
+
+      const hint = document.createElement('div'); hint.className = 'crop-hint';
+      hint.textContent = 'Drag the photo to reposition it, scroll or use the slider to zoom.';
+
+      const viewport = document.createElement('div');
+      viewport.id = 'crop-viewport';
+      const img = document.createElement('img');
+      img.src = url; img.alt = '';
+      viewport.appendChild(img);
+
+      function render() {
+        img.style.objectPosition = state.x + '% ' + state.y + '%';
+        img.style.transform = 'scale(' + state.zoom + ')';
+      }
+      render();
+
+      function excess(axis) {
+        const baseScale = Math.max(state.size / state.naturalW, state.size / state.naturalH);
+        const renderedSize = (axis === 'x' ? state.naturalW : state.naturalH) * baseScale * state.zoom;
+        return Math.max(0, renderedSize - state.size);
+      }
+
+      let dragging = false, lastX = 0, lastY = 0;
+      viewport.addEventListener('pointerdown', (e) => {
+        dragging = true; lastX = e.clientX; lastY = e.clientY;
+        viewport.classList.add('dragging');
+        viewport.setPointerCapture(e.pointerId);
+      });
+      viewport.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        const exX = excess('x'), exY = excess('y');
+        if (exX > 0) state.x = Math.min(100, Math.max(0, state.x - (dx / exX) * 100));
+        if (exY > 0) state.y = Math.min(100, Math.max(0, state.y - (dy / exY) * 100));
+        render();
+      });
+      const stopDrag = () => { dragging = false; viewport.classList.remove('dragging'); };
+      viewport.addEventListener('pointerup', stopDrag);
+      viewport.addEventListener('pointercancel', stopDrag);
+      viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        state.zoom = Math.min(3, Math.max(1, state.zoom + (e.deltaY < 0 ? 0.05 : -0.05)));
+        zoomSlider.value = String(state.zoom);
+        render();
+      }, { passive: false });
+
+      const zoomRow = document.createElement('div'); zoomRow.className = 'crop-zoom-row';
+      const minus = document.createElement('span'); minus.textContent = '−';
+      const zoomSlider = document.createElement('input');
+      zoomSlider.type = 'range'; zoomSlider.min = '1'; zoomSlider.max = '3'; zoomSlider.step = '0.02';
+      zoomSlider.value = String(state.zoom);
+      zoomSlider.oninput = () => { state.zoom = parseFloat(zoomSlider.value); render(); };
+      const plus = document.createElement('span'); plus.textContent = '+';
+      zoomRow.appendChild(minus); zoomRow.appendChild(zoomSlider); zoomRow.appendChild(plus);
+
+      const btnRow = document.createElement('div'); btnRow.className = 'ov-btn-row';
+      const resetBtn = document.createElement('button'); resetBtn.className = 'ov-close'; resetBtn.textContent = 'Reset';
+      resetBtn.onclick = () => { state.x = 50; state.y = 50; state.zoom = 1; zoomSlider.value = '1'; render(); };
+      const saveBtn = document.createElement('button'); saveBtn.className = 'ov-submit'; saveBtn.textContent = 'Save crop';
+      saveBtn.onclick = async () => {
+        const { error } = await supa.from('people')
+          .update({ photo_pos_x: state.x, photo_pos_y: state.y, photo_zoom: state.zoom })
+          .eq('id', activeId);
+        if (error) { alert('Save failed — you may need to sign in again as admin.'); return; }
+        Object.assign(p, { photo_pos_x: state.x, photo_pos_y: state.y, photo_zoom: state.zoom });
+        closeOverlay();
+        buildTree();
+        updateVis();
+        openPanel(activeId);
+        startPersonEdit();
+      };
+      btnRow.appendChild(resetBtn); btnRow.appendChild(saveBtn);
+
+      wrap.appendChild(hint);
+      wrap.appendChild(viewport);
+      wrap.appendChild(zoomRow);
+      wrap.appendChild(btnRow);
+      resolve(wrap);
+    };
+    probe.onerror = () => {
+      const err = document.createElement('div'); err.className = 'msg-empty'; err.textContent = 'Could not load this photo — check the URL and try again.';
+      resolve(err);
+    };
+    probe.src = url;
+  });
 }
 
 function buildLoginForm() {
