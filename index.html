@@ -181,8 +181,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <button class="nav-btn" onclick="handleAuthClick()" id="auth-btn">Admin</button>
     </div>
   </div>
+  <div id="navdrawer-backdrop" onclick="closeNavDrawer()"></div>
 </nav>
-<div id="navdrawer-backdrop" onclick="closeNavDrawer()"></div>
 
 <!-- TREE VIEW -->
 <div id="toolbar">
@@ -384,7 +384,7 @@ async function boot() {
     document.getElementById('canvas').style.display = 'block';
     buildTree();
     updateVis();
-    scrollToRoot();
+    requestAnimationFrame(scrollToRoot);
   } catch (err) {
     document.getElementById('load-status').textContent =
       'Could not load the family tree. If you just set this up, make sure config.js has your real Supabase URL and anon key, and that supabase/schema.sql has been run.';
