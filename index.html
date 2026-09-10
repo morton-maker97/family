@@ -62,6 +62,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .about-textarea{display:none;width:100%;max-width:640px;min-height:160px;background:#2A1508;border:1px solid #5a3520;color:#fff;padding:12px;font-size:14px;font-family:Georgia,serif;line-height:1.8;margin-bottom:16px;resize:vertical;}
 
 /* ── DETAIL PANEL (PROFILE SIDEBAR) ── */
+#detail-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:190;}
+#detail-backdrop.visible{display:block;}
 #detail-panel{position:fixed;top:0;left:-380px;width:350px;height:100%;background:#2A1508;border-right:1px solid #5a3520;z-index:200;display:flex;flex-direction:column;transition:left .38s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
 #detail-panel.open{left:0;}
 .dp-inner{padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
@@ -207,6 +209,7 @@ body.admin-mode #nav{top:32px;}
 </div>
 
 <!-- PROFILE SIDEBAR -->
+<div id="detail-backdrop" onclick="closePanel()"></div>
 <div id="detail-panel">
   <div class="dp-inner">
     <button class="back-btn" onclick="closePanel()">
@@ -319,8 +322,11 @@ let isAdmin     = false;
 const NW = 52, NH = 72;
 const RW = 160, RH = 100;
 const HGAP = 100;
-const ROW_Y = { 1: 180, 2: 340, 3: 500 };
+const ROW_BASE_Y = 180, ROW_GAP_Y = 160; // generation 1 sits at ROW_BASE_Y, each deeper generation adds ROW_GAP_Y — no fixed cap on how many generations
 const CONNECTOR_GAP = 8;
+
+function rowY(gen) { return ROW_BASE_Y + (gen - 1) * ROW_GAP_Y; }
+function maxGeneration() { return people.reduce((m, p) => Math.max(m, p.generation ?? 0), 0); }
 
 const pos = {};
 
@@ -451,16 +457,18 @@ function generationIds(gen) {
 }
 
 function computePos() {
-  const row1Ids = generationIds(1), row2Ids = generationIds(2), row3Ids = generationIds(3);
-  const maxCols = Math.max(row1Ids.length, row2Ids.length, row3Ids.length, 1);
+  const maxGen = maxGeneration();
+  const rows = [];
+  for (let g = 1; g <= maxGen; g++) rows.push(generationIds(g));
+  const maxCols = Math.max(1, ...rows.map(r => r.length));
   const totalW  = maxCols * (NW + HGAP) + 240;
   const cx      = totalW / 2;
   pos['root'] = { x: cx, y: 20 };
-  [row1Ids, row2Ids, row3Ids].forEach((ids, ri) => {
-    const y = ROW_Y[ri + 1];
-    ids.forEach((id, i) => {
+  rows.forEach((ids, i) => {
+    const y = rowY(i + 1);
+    ids.forEach((id, idx) => {
       const startX = cx - (ids.length - 1) * (NW + HGAP) / 2;
-      pos[id] = { x: startX + i * (NW + HGAP), y };
+      pos[id] = { x: startX + idx * (NW + HGAP), y };
     });
   });
   return totalW;
@@ -470,7 +478,7 @@ function buildTree() {
   const totalW  = computePos();
   const canvas  = document.getElementById('canvas');
   const svg     = document.getElementById('svg-lines');
-  const totalH  = ROW_Y[3] + NH + 100;
+  const totalH  = rowY(Math.max(1, maxGeneration())) + NH + 100;
 
   document.querySelectorAll('.node').forEach(n => n.remove());
   svg.innerHTML = '';
@@ -582,10 +590,12 @@ function zoom(d) {
 }
 
 function updateVis() {
-  const sh = { 0: true, 1: zoomLevel >= 0.45, 2: zoomLevel >= 0.6, 3: zoomLevel >= 0.75 };
   people.filter(p => p.id !== 'root').forEach(p => {
     const el = document.getElementById('node-' + p.id);
-    if (el) el.style.opacity = sh[p.generation] ? '1' : '0.08';
+    if (!el) return;
+    const gen = p.generation ?? 0;
+    const threshold = gen <= 0 ? 0 : 0.45 + (gen - 1) * 0.15;
+    el.style.opacity = zoomLevel >= threshold ? '1' : '0.08';
   });
 }
 
@@ -615,10 +625,12 @@ function openPanel(id) {
   renderBreadcrumb(id);
   refreshPersonAdminActions();
   document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('detail-backdrop').classList.add('visible');
 }
 
 function closePanel() {
   document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('detail-backdrop').classList.remove('visible');
   const bar = document.getElementById('breadcrumb-bar');
   bar.innerHTML = '';
   bar.classList.remove('visible');
@@ -627,7 +639,7 @@ function closePanel() {
 
 function refreshPersonAdminActions() {
   const p = people.find(x => x.id === activeId);
-  const canAdd = isAdmin && p && (p.generation ?? 0) < 3;
+  const canAdd = isAdmin && !!p;
   document.getElementById('add-descendant-row').style.display = canAdd ? 'block' : 'none';
   const canDelete = isAdmin && p && p.id !== 'root';
   document.getElementById('delete-divider').style.display = canDelete ? 'block' : 'none';
@@ -722,10 +734,7 @@ let addParentId = null;
 function openAddDescendant() {
   if (!isAdmin || !activeId) return;
   const p = people.find(x => x.id === activeId);
-  if (!p || (p.generation ?? 0) >= 3) {
-    alert('This tree currently supports 3 generations below the root. Adding a 4th needs a small layout change — ask if you want that.');
-    return;
-  }
+  if (!p) return;
   addParentId = activeId;
   showOverlay('add-person');
 }
