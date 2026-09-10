@@ -72,6 +72,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 #detail-rel{font-size:12px;color:#c8a882;}
 .dp-btn{font-size:12px;padding:8px 16px;border:1px solid #fff;background:#3B1F0F;color:#fff;margin-right:8px;}
 .dp-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.dp-btn-danger{border-color:#c0392b;color:#ff9d8f;}
+.dp-btn-danger:hover{background:#c0392b;color:#fff;border-color:#c0392b;}
 .dp-textarea{width:100%;min-height:64px;border:1px solid #5a3520;padding:8px;font-size:12px;resize:vertical;background:#3B1F0F;color:#fff;font-family:Georgia,serif;}
 .dp-divider{height:1px;background:#5a3520;margin:4px 0;}
 .dp-label{font-size:10px;color:#c8a882;letter-spacing:.05em;margin-bottom:4px;}
@@ -216,6 +218,11 @@ body.admin-mode #nav{top:32px;}
       <div id="detail-name"></div>
       <div id="detail-rel"></div>
     </div>
+    <div id="add-descendant-row" style="display:none;">
+      <button class="dp-btn" onclick="openAddDescendant()">
+        <i class="ti ti-plus" aria-hidden="true"></i> Add descendant
+      </button>
+    </div>
     <div>
       <div id="person-edit-fields">
         <div class="dp-label">Name</div>
@@ -264,6 +271,12 @@ body.admin-mode #nav{top:32px;}
           <i class="ti ti-check" aria-hidden="true"></i> Save
         </button>
       </div>
+    </div>
+    <div class="dp-divider" id="delete-divider" style="display:none;"></div>
+    <div id="delete-person-row" style="display:none;">
+      <button class="dp-btn dp-btn-danger" onclick="deletePerson()">
+        <i class="ti ti-trash" aria-hidden="true"></i> Delete person
+      </button>
     </div>
   </div>
 </div>
@@ -379,6 +392,7 @@ function updateAdminUI() {
   document.body.classList.toggle('admin-mode', isAdmin);
   const q = document.getElementById('root-quote');
   q.classList.toggle('editable', isAdmin);
+  if (activeId) refreshPersonAdminActions();
 }
 
 function handleAuthClick() {
@@ -599,6 +613,7 @@ function openPanel(id) {
   document.getElementById('src-add-btn').style.display   = 'inline-block';
   renderSrcs(id);
   renderBreadcrumb(id);
+  refreshPersonAdminActions();
   document.getElementById('detail-panel').classList.add('open');
 }
 
@@ -608,6 +623,15 @@ function closePanel() {
   bar.innerHTML = '';
   bar.classList.remove('visible');
   activeId = null;
+}
+
+function refreshPersonAdminActions() {
+  const p = people.find(x => x.id === activeId);
+  const canAdd = isAdmin && p && (p.generation ?? 0) < 3;
+  document.getElementById('add-descendant-row').style.display = canAdd ? 'block' : 'none';
+  const canDelete = isAdmin && p && p.id !== 'root';
+  document.getElementById('delete-divider').style.display = canDelete ? 'block' : 'none';
+  document.getElementById('delete-person-row').style.display = canDelete ? 'block' : 'none';
 }
 
 function startPersonEdit() {
@@ -674,6 +698,135 @@ async function savePerson() {
   buildTree();
   updateVis();
   openPanel(activeId);
+}
+
+/* ════════════════════════════════════════
+   ADD / REMOVE PEOPLE
+   ════════════════════════════════════════ */
+function slugify(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFKD').replace(/\p{Diacritic}/gu, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function makePersonId(name) {
+  const base = slugify(name) || 'person';
+  const suffix = Math.random().toString(16).slice(2, 6);
+  return `${base}-${suffix}`;
+}
+
+let addParentId = null;
+
+function openAddDescendant() {
+  if (!isAdmin || !activeId) return;
+  const p = people.find(x => x.id === activeId);
+  if (!p || (p.generation ?? 0) >= 3) {
+    alert('This tree currently supports 3 generations below the root. Adding a 4th needs a small layout change — ask if you want that.');
+    return;
+  }
+  addParentId = activeId;
+  showOverlay('add-person');
+}
+
+function buildAddPersonForm() {
+  const parent = people.find(x => x.id === addParentId);
+  const wrap = document.createElement('div');
+
+  const hint = document.createElement('div');
+  hint.className = 'crop-hint';
+  hint.textContent = `Adding a new person connected below ${parent ? parent.name : 'this person'}.`;
+  wrap.appendChild(hint);
+
+  wrap.appendChild(buildFormFields('add', [
+    { id: 'name', label: 'Name' },
+    { id: 'rel', label: 'Relationship (e.g. "Grandmother")' },
+    { id: 'icon', label: 'Icon (emoji, used when no photo)' },
+    { id: 'photo', label: 'Photo URL (optional — you can upload one after creating them)' },
+  ]));
+
+  const err = document.createElement('div'); err.className = 'ov-error'; err.id = 'add-person-error';
+  wrap.appendChild(err);
+
+  const row = document.createElement('div'); row.className = 'ov-btn-row';
+  const btn = document.createElement('button'); btn.className = 'ov-submit'; btn.textContent = 'Add person';
+  btn.onclick = submitAddDescendant;
+  row.appendChild(btn);
+  wrap.appendChild(row);
+
+  return wrap;
+}
+
+async function submitAddDescendant() {
+  const errEl = document.getElementById('add-person-error');
+  errEl.textContent = '';
+  const name = document.getElementById('add-name').value.trim();
+  if (!name) { errEl.textContent = 'Name is required.'; return; }
+
+  const parent = people.find(x => x.id === addParentId);
+  if (!parent) { errEl.textContent = 'Something went wrong — close this and try again.'; return; }
+
+  const rel = document.getElementById('add-rel').value.trim();
+  const icon = document.getElementById('add-icon').value.trim() || '👤';
+  const photo = document.getElementById('add-photo').value.trim() || null;
+  const generation = (parent.generation ?? 0) + 1;
+  const siblingIds = generationIds(generation);
+  const sortOrder = siblingIds.length
+    ? Math.max(...siblingIds.map(id => people.find(p => p.id === id)?.sort_order ?? 0)) + 1
+    : 0;
+  const newId = makePersonId(name);
+
+  const { error: insertErr } = await supa.from('people')
+    .insert({ id: newId, name, rel, icon, photo_url: photo, generation, sort_order: sortOrder });
+  if (insertErr) { errEl.textContent = 'Could not add person — you may need to sign in again as admin.'; return; }
+
+  const { error: connErr } = await supa.from('connections').insert({ parent_id: addParentId, child_id: newId });
+
+  people.push({
+    id: newId, name, rel, icon, photo_url: photo, description: '',
+    generation, sort_order: sortOrder, photo_pos_x: 50, photo_pos_y: 50, photo_zoom: 1,
+  });
+  if (!connErr) connsArr.push([addParentId, newId]);
+
+  closeOverlay();
+  buildTree();
+  updateVis();
+  openPanel(newId);
+  if (connErr) alert(`${name} was created, but connecting them to ${parent.name} failed. You can fix the connection in Supabase Table Editor.`);
+}
+
+function getDescendantIds(id) {
+  const result = [];
+  const stack = [id];
+  while (stack.length) {
+    const cur = stack.pop();
+    connsArr.filter(([a]) => a === cur).forEach(([, child]) => { result.push(child); stack.push(child); });
+  }
+  return result;
+}
+
+async function deletePerson() {
+  if (!isAdmin || !activeId || activeId === 'root') return;
+  const p = people.find(x => x.id === activeId);
+  if (!p) return;
+  const descendantIds = getDescendantIds(activeId);
+  const allIds = [activeId, ...descendantIds];
+  const msg = descendantIds.length
+    ? `Delete ${p.name} and ${descendantIds.length} ${descendantIds.length === 1 ? 'person' : 'people'} connected below them? This can't be undone.`
+    : `Delete ${p.name}? This can't be undone.`;
+  if (!confirm(msg)) return;
+
+  const { error } = await supa.from('people').delete().in('id', allIds);
+  if (error) { alert('Delete failed — you may need to sign in again as admin.'); return; }
+
+  people = people.filter(x => !allIds.includes(x.id));
+  connsArr = connsArr.filter(([a, b]) => !allIds.includes(a) && !allIds.includes(b));
+  allIds.forEach(id => delete sourcesMap[id]);
+
+  closePanel();
+  buildTree();
+  updateVis();
 }
 
 /* ════════════════════════════════════════
@@ -770,7 +923,7 @@ async function saveQuote() {
 }
 
 async function showOverlay(type) {
-  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages', crop: 'Adjust photo crop' };
+  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages', crop: 'Adjust photo crop', 'add-person': 'Add a person' };
   document.getElementById('ov-title').textContent = titles[type] || '';
   const content = document.getElementById('ov-content');
   content.innerHTML = '';
@@ -789,6 +942,8 @@ async function showOverlay(type) {
     content.appendChild(buildLoginForm());
   } else if (type === 'contact') {
     content.appendChild(buildContact());
+  } else if (type === 'add-person') {
+    content.appendChild(buildAddPersonForm());
   } else if (type === 'messages') {
     const loading = document.createElement('div'); loading.className = 'msg-empty'; loading.textContent = 'Loading…';
     content.appendChild(loading);

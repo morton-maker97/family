@@ -44,9 +44,13 @@ Open the site, click **Admin** in the top-right, and sign in with the email/pass
 
 ## What's editable, and what isn't (yet)
 
-Admins can edit, from the page itself: each person's name, relationship label, photo URL, emoji icon, description, and sources; the About page text; the root quote; and the feedback/contribution form intros.
+Admins can edit, from the page itself: each person's name, relationship label, photo (uploaded from your computer, pasted as a URL, or drag-to-reposition/zoom cropped), emoji icon, description, and sources; the About page text; the root quote; and the feedback/contribution form intros.
 
-Adding a brand-new person or rewiring who's connected to whom isn't built into the page UI yet — for now, do that directly in **Supabase → Table Editor** on the `people` and `connections` tables (it's a full spreadsheet-style admin GUI Supabase gives you for free). If you outgrow that, an in-page "add person" flow is a natural next feature to add to `index.html`.
+Admins can also **add and remove people** directly from a person's panel:
+- **Add descendant** creates a new person connected one generation below whoever's panel is open (e.g. open "Father" and add a "Grandmother" below him). The tree currently supports 3 generations below the root (parents, grandparents, great-grandparents) — adding a 4th would need a small layout change.
+- **Delete person** removes that person. If they have anyone connected below them, it warns you and deletes that whole branch too (their sources and connections go with them) — there's no undo, so double-check before confirming.
+
+Rewiring an *existing* person to a different parent, or giving someone a second parent connection (for blended families), isn't built into the page UI — for that, edit the `connections` table directly in **Supabase → Table Editor** (a full spreadsheet-style admin GUI Supabase gives you for free).
 
 ## Local development
 
