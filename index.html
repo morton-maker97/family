@@ -178,6 +178,12 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
   <div class="about-body" id="about-body-text"></div>
   <textarea class="about-textarea" id="about-textarea"></textarea>
   <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+    <button class="about-edit-btn" id="about-edit-btn" onclick="startAboutEdit()">
+      <i class="ti ti-edit" aria-hidden="true"></i> Edit
+    </button>
+    <button class="about-save-btn" id="about-save-btn" onclick="saveAbout()">
+      <i class="ti ti-check" aria-hidden="true"></i> Save
+    </button>
   </div>
 </div>
 
@@ -197,6 +203,12 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <div id="detail-desc-text" style="font-size:13px;color:#c8a882;line-height:1.6;min-height:36px;"></div>
       <textarea id="detail-edit-area" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Write about this person…"></textarea>
       <div style="display:flex;margin-top:10px;">
+        <button class="dp-btn" id="desc-edit-btn" onclick="startDescEdit()">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit
+        </button>
+        <button class="dp-btn" id="desc-save-btn" style="display:none;" onclick="saveDesc()">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
       </div>
     </div>
     <div class="dp-divider"></div>
@@ -205,6 +217,12 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <div id="sources-list"></div>
       <textarea id="source-input" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Paste a source, citation, or URL…"></textarea>
       <div style="display:flex;margin-top:10px;">
+        <button class="dp-btn" id="src-add-btn" onclick="startSrcAdd()">
+          <i class="ti ti-plus" aria-hidden="true"></i> Add source
+        </button>
+        <button class="dp-btn" id="src-save-btn" style="display:none;" onclick="saveSrc()">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
       </div>
     </div>
   </div>
