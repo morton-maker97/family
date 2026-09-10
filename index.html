@@ -160,8 +160,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .crop-zoom-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;color:#c8a882;font-size:14px;}
 .crop-zoom-row input[type=range]{flex:1;}
 
-#admin-banner{display:none;position:sticky;top:0;z-index:150;height:32px;box-sizing:border-box;padding:6px 12px;background:#FA8072;color:#14451e;font-size:12px;font-weight:500;letter-spacing:.02em;text-align:center;}
-body.admin-mode #nav{top:32px;}
+#admin-banner{display:none;position:sticky;top:0;z-index:150;padding:6px 12px;background:#FA8072;color:#14451e;font-size:12px;font-weight:500;letter-spacing:.02em;text-align:center;line-height:1.4;}
 </style>
 </head>
 <body>
@@ -422,7 +421,14 @@ function updateAdminUI() {
   const q = document.getElementById('root-quote');
   q.classList.toggle('editable', isAdmin);
   if (activeId) refreshPersonAdminActions();
+  syncAdminBannerOffset();
 }
+
+function syncAdminBannerOffset() {
+  const banner = document.getElementById('admin-banner');
+  document.getElementById('nav').style.top = isAdmin ? banner.offsetHeight + 'px' : '0px';
+}
+window.addEventListener('resize', () => { if (isAdmin) syncAdminBannerOffset(); });
 
 function handleAuthClick() {
   closeNavDrawer();
