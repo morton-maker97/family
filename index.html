@@ -16,6 +16,24 @@ button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
 .nav-links{display:flex;gap:8px;align-items:center;}
 .nav-btn{font-size:12px;background:none;border:1px solid #5a3520;color:#fff;padding:6px 16px;}
 .nav-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.hamburger-btn{display:none;font-size:16px;padding:6px 10px;line-height:1;}
+#nav-extra{display:flex;gap:8px;align-items:center;}
+#navdrawer-backdrop{display:none;}
+
+@media (max-width:680px){
+  .hamburger-btn{display:inline-flex;align-items:center;justify-content:center;}
+  #nav-extra{
+    position:fixed;top:0;right:-280px;width:260px;max-width:80vw;height:100%;
+    background:#2A1508;border-left:1px solid #5a3520;
+    flex-direction:column;align-items:stretch;gap:8px;
+    padding:60px 16px 16px;
+    transition:right .38s cubic-bezier(.4,0,.2,1);
+    z-index:250;overflow-y:auto;
+  }
+  #nav-extra.open{right:0;}
+  #nav-extra .nav-btn{width:100%;text-align:left;}
+  #navdrawer-backdrop.visible{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:240;}
+}
 
 /* ── TOOLBAR ── */
 #toolbar{display:flex;align-items:center;gap:12px;padding:8px 20px;background:#2A1508;border-bottom:1px solid #5a3520;}
@@ -155,13 +173,17 @@ body.admin-mode #nav{top:32px;}
 <nav id="nav">
   <span class="nav-brand">Family Archive</span>
   <div class="nav-links">
-    <button class="nav-btn" onclick="showAbout()">About</button>
     <button class="nav-btn" onclick="toggleGrid()" id="grid-btn">View as grid</button>
-    <button class="nav-btn" onclick="showOverlay('contact')">Contact</button>
-    <button class="nav-btn" onclick="showOverlay('messages')" id="messages-btn" style="display:none;">Messages</button>
-    <button class="nav-btn" onclick="handleAuthClick()" id="auth-btn">Admin</button>
+    <button class="nav-btn hamburger-btn" onclick="toggleNavDrawer()" aria-label="Menu">☰</button>
+    <div id="nav-extra">
+      <button class="nav-btn" onclick="showAbout()">About</button>
+      <button class="nav-btn" onclick="showOverlay('contact')">Contact</button>
+      <button class="nav-btn" onclick="showOverlay('messages')" id="messages-btn" style="display:none;">Messages</button>
+      <button class="nav-btn" onclick="handleAuthClick()" id="auth-btn">Admin</button>
+    </div>
   </div>
 </nav>
+<div id="navdrawer-backdrop" onclick="closeNavDrawer()"></div>
 
 <!-- TREE VIEW -->
 <div id="toolbar">
@@ -403,7 +425,22 @@ function updateAdminUI() {
 }
 
 function handleAuthClick() {
+  closeNavDrawer();
   if (isAdmin) doLogout(); else showOverlay('login');
+}
+
+function openNavDrawer() {
+  closePanel();
+  document.getElementById('nav-extra').classList.add('open');
+  document.getElementById('navdrawer-backdrop').classList.add('visible');
+}
+function closeNavDrawer() {
+  document.getElementById('nav-extra').classList.remove('open');
+  document.getElementById('navdrawer-backdrop').classList.remove('visible');
+}
+function toggleNavDrawer() {
+  const el = document.getElementById('nav-extra');
+  if (el.classList.contains('open')) closeNavDrawer(); else openNavDrawer();
 }
 
 async function doLogin() {
@@ -577,7 +614,7 @@ function setView(view) {
 }
 
 function toggleGrid() { setView(gridMode ? 'tree' : 'grid'); closePanel(); }
-function showAbout()  { setView('about'); closePanel(); }
+function showAbout()  { closeNavDrawer(); setView('about'); closePanel(); }
 function hideAbout()  { setView('tree'); }
 
 /* ════════════════════════════════════════
@@ -605,6 +642,7 @@ function updateVis() {
    ════════════════════════════════════════ */
 function openPanel(id) {
   const p = people.find(x => x.id === id); if (!p) return;
+  closeNavDrawer();
   activeId = id;
   const photoWrap = document.getElementById('detail-photo-wrap');
   photoWrap.innerHTML = '';
@@ -933,6 +971,7 @@ async function saveQuote() {
 }
 
 async function showOverlay(type) {
+  closeNavDrawer();
   const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages', crop: 'Adjust photo crop', 'add-person': 'Add a person' };
   document.getElementById('ov-title').textContent = titles[type] || '';
   const content = document.getElementById('ov-content');
