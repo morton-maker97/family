@@ -122,6 +122,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .ov-textarea:focus{border-color:#c8a882;outline:none;}
 
 .desc-text-block{font-size:13px;color:#c8a882;line-height:1.7;margin-bottom:8px;}
+.desc-edit-inline-btn{font-size:11px;padding:4px 10px;border:1px solid #5a3520;background:none;color:#8a6040;}
+.desc-edit-inline-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
 
 .ov-btn-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;}
 .ov-close{font-size:12px;padding:8px 20px;border:1px solid #5a3520;background:none;color:#fff;}
@@ -157,6 +159,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <div id="root-photo" onclick="openPanel('root')">&#128100;</div>
       <div>
         <div id="root-name-label">Your Name</div>
+        <div id="root-quote" onclick="editQuote()">"Add a quote or note…"</div>
       </div>
     </div>
   </div>
@@ -176,6 +179,9 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
   <div class="about-body" id="about-body-text"></div>
   <textarea class="about-textarea" id="about-textarea"></textarea>
   <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+    <button class="about-edit-btn" id="about-edit-btn" onclick="startAboutEdit()">
+      <i class="ti ti-edit" aria-hidden="true"></i> Edit
+    </button>
     <button class="about-save-btn" id="about-save-btn" onclick="saveAbout()">
       <i class="ti ti-check" aria-hidden="true"></i> Save
     </button>
@@ -196,6 +202,10 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
     </div>
     <div>
       <div id="detail-desc-text" style="font-size:13px;color:#c8a882;line-height:1.6;min-height:36px;"></div>
+      <textarea id="detail-edit-area" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Write about this person…"></textarea>
+      <div style="display:flex;margin-top:10px;">
+        <button class="dp-btn" id="desc-edit-btn" onclick="startDescEdit()">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit
         </button>
         <button class="dp-btn" id="desc-save-btn" style="display:none;" onclick="saveDesc()">
           <i class="ti ti-check" aria-hidden="true"></i> Save
@@ -433,6 +443,13 @@ function openPanel(id) {
   document.getElementById('detail-name').textContent      = p.name;
   document.getElementById('detail-rel').textContent       = p.rel;
   document.getElementById('detail-desc-text').textContent = descs[id] || 'No description yet.';
+  document.getElementById('detail-edit-area').value       = descs[id] || '';
+  document.getElementById('detail-edit-area').style.display  = 'none';
+  document.getElementById('desc-save-btn').style.display     = 'none';
+  document.getElementById('desc-edit-btn').style.display     = 'inline-block';
+  document.getElementById('source-input').style.display      = 'none';
+  document.getElementById('src-save-btn').style.display      = 'none';
+  document.getElementById('src-add-btn').style.display       = 'inline-block';
   renderSrcs(id);
   renderBreadcrumb(id);
   document.getElementById('detail-panel').classList.add('open');
@@ -446,8 +463,22 @@ function closePanel() {
   activeId = null;
 }
 
+function startDescEdit() {
+  document.getElementById('detail-edit-area').style.display = 'block';
+  document.getElementById('desc-save-btn').style.display    = 'inline-block';
+  document.getElementById('desc-edit-btn').style.display    = 'none';
+  document.getElementById('detail-edit-area').focus();
+}
 
-
+function saveDesc() {
+  if (!activeId) return;
+  const v = document.getElementById('detail-edit-area').value.trim();
+  descs[activeId] = v;
+  document.getElementById('detail-desc-text').textContent    = v || 'No description yet.';
+  document.getElementById('detail-edit-area').style.display  = 'none';
+  document.getElementById('desc-save-btn').style.display     = 'none';
+  document.getElementById('desc-edit-btn').style.display     = 'inline-block';
+}
 
 function startSrcAdd() {
   document.getElementById('source-input').style.display  = 'block';
@@ -484,14 +515,85 @@ function renderSrcs(id) {
 /* ════════════════════════════════════════
    ABOUT PAGE EDITING
    ════════════════════════════════════════ */
+function startAboutEdit() {
+  document.getElementById('about-body-text').style.display = 'none';
+  document.getElementById('about-textarea').style.display  = 'block';
+  document.getElementById('about-textarea').value          = aboutText;
+  document.getElementById('about-edit-btn').style.display  = 'none';
+  document.getElementById('about-save-btn').style.display  = 'inline-block';
+  document.getElementById('about-textarea').focus();
+}
+
+function saveAbout() {
+  const v = document.getElementById('about-textarea').value.trim();
+  aboutText = v || aboutText;
+  document.getElementById('about-body-text').textContent   = aboutText;
+  document.getElementById('about-body-text').style.display = 'block';
+  document.getElementById('about-textarea').style.display  = 'none';
+  document.getElementById('about-edit-btn').style.display  = 'inline-block';
+  document.getElementById('about-save-btn').style.display  = 'none';
+}
 
 /* ════════════════════════════════════════
    OVERLAY (CONTACT / QUOTE)
    ════════════════════════════════════════ */
+function editQuote()  { showOverlay('quote'); }
+function saveQuote()  {
+  const v = document.getElementById('quote-input').value.trim();
+  rootQuote = v ? `"${v}"` : '"Add a quote or note…"';
+  document.getElementById('root-quote').textContent = rootQuote;
+  closeOverlay();
+}
 
+function showOverlay(type) {
+  document.getElementById('ov-title').textContent   = type === 'contact' ? 'Contact' : 'Edit quote';
+  document.getElementById('ov-content').innerHTML   =
+    type === 'contact' ? buildContact() :
+    `<div class="ov-field"><label>Quote or note</label>
+     <input class="ov-input" id="quote-input" type="text" value="${rootQuote.replace(/^"|"$/g, '')}"></div>
+     <div class="ov-btn-row"><button class="ov-submit" onclick="saveQuote()">Save</button></div>`;
+  document.getElementById('overlay-panel').classList.add('open');
+}
 
+function buildContact() {
+  const fbBody = `
+    <div style="margin-bottom:16px;">
+      <div class="desc-text-block" id="fb-intro-text">${feedbackIntro}</div>
+      <textarea class="dp-textarea" id="fb-intro-edit" style="display:none;margin-top:6px;" placeholder="Edit this description…"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="desc-edit-inline-btn" id="fb-intro-edit-btn" onclick="startIntroEdit('fb')">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit description
+        </button>
+        <button class="desc-edit-inline-btn" id="fb-intro-save-btn" style="display:none;" onclick="saveIntroEdit('fb')">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+      </div>
+    </div>
+    <div class="ov-field"><label>Your name</label><input class="ov-input" id="fb-name" type="text"></div>
+    <div class="ov-field"><label>Your email</label><input class="ov-input" id="fb-email" type="email"></div>
+    <div class="ov-field"><label>Email body</label><textarea class="ov-textarea" id="fb-msg"></textarea></div>
+    <div class="ov-btn-row"><button class="ov-submit" onclick="sendForm('fb')">Send feedback</button></div>
+    <div class="ov-sent" id="fb-sent">Sent! Thank you for your feedback.</div>`;
 
-  
+  const ctBody = `
+    <div style="margin-bottom:16px;">
+      <div class="desc-text-block" id="ct-intro-text">${contribIntro}</div>
+      <textarea class="dp-textarea" id="ct-intro-edit" style="display:none;margin-top:6px;" placeholder="Edit this description…"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="desc-edit-inline-btn" id="ct-intro-edit-btn" onclick="startIntroEdit('ct')">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit description
+        </button>
+        <button class="desc-edit-inline-btn" id="ct-intro-save-btn" style="display:none;" onclick="saveIntroEdit('ct')">
+          <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+      </div>
+    </div>
+    <div class="ov-field"><label>Your name</label><input class="ov-input" id="ct-name" type="text"></div>
+    <div class="ov-field"><label>Your email</label><input class="ov-input" id="ct-email" type="email"></div>
+    <div class="ov-field"><label>Name of submission</label><input class="ov-input" id="ct-branch" type="text"></div>
+    <div class="ov-field"><label>Email body</label><textarea class="ov-textarea" id="ct-msg"></textarea></div>
+    <div class="ov-btn-row"><button class="ov-submit" onclick="sendForm('ct')">Submit contribution</button></div>
+    <div class="ov-sent" id="ct-sent">Submitted! We'll be in touch.</div>`;
 
   return `<div class="ov-tabs">
     <button class="ov-tab ${contactTab === 'feedback' ? 'active' : ''}" onclick="setTab('feedback')">Give feedback</button>
@@ -511,6 +613,9 @@ function sendForm(type) {
 }
 
 
+function closeOverlay() {
+  document.getElementById('overlay-panel').classList.remove('open');
+}
 
 /* ════════════════════════════════════════
    BREADCRUMB — builds lineage path from
