@@ -384,6 +384,7 @@ async function boot() {
     document.getElementById('canvas').style.display = 'block';
     buildTree();
     updateVis();
+    scrollToRoot();
   } catch (err) {
     document.getElementById('load-status').textContent =
       'Could not load the family tree. If you just set this up, make sure config.js has your real Supabase URL and anon key, and that supabase/schema.sql has been run.';
@@ -589,6 +590,14 @@ function buildTree() {
   buildGrid();
   document.getElementById('about-body-text').textContent = siteContent.about_text;
   document.getElementById('about-textarea').value = siteContent.about_text;
+}
+
+function scrollToRoot() {
+  const wrap = document.getElementById('canvas-wrap');
+  const rootPos = pos['root'];
+  if (!rootPos) return;
+  wrap.scrollLeft = Math.max(0, rootPos.x - wrap.clientWidth / 2);
+  wrap.scrollTop = 0;
 }
 
 function buildGrid() {
