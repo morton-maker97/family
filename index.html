@@ -13,7 +13,7 @@ button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
 /* ── NAV ── */
 #nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:48px;background:#2A1508;border-bottom:1px solid #5a3520;position:sticky;top:0;z-index:100;}
 .nav-brand{font-size:15px;font-weight:500;color:#fff;letter-spacing:.03em;}
-.nav-links{display:flex;gap:8px;}
+.nav-links{display:flex;gap:8px;align-items:center;}
 .nav-btn{font-size:12px;background:none;border:1px solid #5a3520;color:#fff;padding:6px 16px;}
 .nav-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
 
@@ -25,29 +25,32 @@ button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
 .hint-txt{font-size:11px;color:#c8a882;margin-left:4px;}
 
 /* ── TREE CANVAS ── */
-#canvas-wrap{overflow:auto;width:100%;height:calc(100vh - 96px);background:#3B1F0F;}
+#canvas-wrap{overflow:auto;width:100%;height:calc(100vh - 96px);background:#3B1F0F;position:relative;}
 #canvas{position:relative;transform-origin:top left;transition:transform .3s ease;padding:20px 40px 60px;}
 svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
+#load-status{padding:40px;font-size:13px;color:#c8a882;}
 
 .node{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:pointer;}
 .node-photo{border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;transition:border-color .2s,transform .15s;color:#fff;width:52px;height:72px;}
 .node:hover .node-photo{border-color:#FA8072;transform:scale(1.06);}
 .node-name{font-size:10px;color:#fff;margin-top:6px;text-align:center;max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.node-photo img,#root-photo img,.grid-card-img img,#detail-photo-wrap img{width:100%;height:100%;object-fit:cover;}
 
 /* ── ROOT ROW ── */
 #root-row{position:absolute;display:flex;align-items:center;gap:18px;}
-#root-photo{width:160px;height:100px;border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;flex-shrink:0;transition:border-color .2s;color:#fff;}
+#root-photo{width:160px;height:100px;border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;flex-shrink:0;transition:border-color .2s;color:#fff;overflow:hidden;}
 #root-photo:hover{border-color:#FA8072;}
 #root-name-label{font-size:12px;font-weight:500;color:#fff;margin-bottom:5px;}
-#root-quote{font-size:12px;font-style:italic;color:#c8a882;line-height:1.5;border-left:2px solid #fff;padding-left:8px;cursor:pointer;max-width:180px;}
-#root-quote:hover{color:#fff;}
+#root-quote{font-size:12px;font-style:italic;color:#c8a882;line-height:1.5;border-left:2px solid #fff;padding-left:8px;max-width:180px;}
+#root-quote.editable{cursor:pointer;}
+#root-quote.editable:hover{color:#fff;}
 
 /* ── GRID VIEW ── */
 #grid-view{display:none;overflow-y:auto;height:calc(100vh - 96px);padding:24px;background:#3B1F0F;}
 .grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;}
 .grid-card{cursor:pointer;display:flex;flex-direction:column;align-items:center;padding:10px 6px;background:#2A1508;border:1px solid #5a3520;transition:border-color .15s;}
 .grid-card:hover{border-color:#FA8072;}
-.grid-card-img{width:100%;height:90px;background:#3B1F0F;border:1px solid #5a3520;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;}
+.grid-card-img{width:100%;height:90px;background:#3B1F0F;border:1px solid #5a3520;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;overflow:hidden;}
 .grid-card-name{font-size:11px;color:#fff;margin-top:7px;text-align:center;}
 
 /* ── ABOUT PAGE ── */
@@ -55,8 +58,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .about-back{display:flex;align-items:center;gap:6px;font-size:13px;color:#c8a882;background:none;border:none;padding:0;margin-bottom:32px;}
 .about-back:hover{color:#FA8072;}
 .about-title{font-size:22px;font-weight:500;color:#fff;margin-bottom:20px;}
-.about-body{font-size:14px;color:#c8a882;line-height:1.8;margin-bottom:24px;white-space:pre-wrap;}
-
+.about-body{font-size:14px;color:#c8a882;line-height:1.8;margin-bottom:24px;white-space:pre-wrap;max-width:640px;}
+.about-textarea{display:none;width:100%;max-width:640px;min-height:160px;background:#2A1508;border:1px solid #5a3520;color:#fff;padding:12px;font-size:14px;font-family:Georgia,serif;line-height:1.8;margin-bottom:16px;resize:vertical;}
 
 /* ── DETAIL PANEL (PROFILE SIDEBAR) ── */
 #detail-panel{position:fixed;top:0;left:-380px;width:350px;height:100%;background:#2A1508;border-right:1px solid #5a3520;z-index:200;display:flex;flex-direction:column;transition:left .38s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
@@ -64,7 +67,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .dp-inner{padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
 .back-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:#fff;background:none;border:none;padding:0;}
 .back-btn:hover{color:#FA8072;}
-#detail-photo-wrap{width:100%;height:200px;background:#3B1F0F;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-size:56px;color:#fff;}
+#detail-photo-wrap{width:100%;height:200px;background:#3B1F0F;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-size:56px;color:#fff;overflow:hidden;}
 #detail-name{font-size:17px;font-weight:500;color:#fff;}
 #detail-rel{font-size:12px;color:#c8a882;}
 .dp-btn{font-size:12px;padding:8px 16px;border:1px solid #fff;background:#3B1F0F;color:#fff;margin-right:8px;}
@@ -77,31 +80,19 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .src-num{color:#8a6040;min-width:14px;}
 .src-del{background:none;border:none;color:#5a3520;font-size:13px;margin-left:auto;padding:0 2px;cursor:pointer;}
 .src-del:hover{color:#FA8072;}
+#person-edit-fields{display:none;flex-direction:column;gap:2px;margin-bottom:8px;}
+#person-edit-fields .ov-input{margin-bottom:8px;}
 
 /* ── BREADCRUMB ── */
-#breadcrumb-bar{
-  display:none;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:0;
-  padding:8px 0 4px;
-  border-bottom:1px solid #5a3520;
-  font-size:11px;
-  color:#8a6040;
-}
+#breadcrumb-bar{display:none;flex-wrap:wrap;align-items:center;gap:0;padding:8px 0 4px;border-bottom:1px solid #5a3520;font-size:11px;color:#8a6040;}
 #breadcrumb-bar.visible{display:flex;}
 .bc-item{display:flex;align-items:center;}
-.bc-link{
-  color:#c8a882;cursor:pointer;padding:1px 3px;
-  background:none;border:none;
-  font-size:11px;font-family:Georgia,serif;
-  text-decoration:underline;text-underline-offset:2px;
-}
+.bc-link{color:#c8a882;cursor:pointer;padding:1px 3px;background:none;border:none;font-size:11px;font-family:Georgia,serif;text-decoration:underline;text-underline-offset:2px;}
 .bc-link:hover{color:#FA8072;}
 .bc-current{color:#fff;font-weight:500;padding:1px 3px;}
 .bc-sep{color:#5a3520;margin:0 1px;font-size:11px;user-select:none;}
 
-/* ── CONTACT / QUOTE OVERLAY ── */
+/* ── CONTACT / QUOTE / LOGIN / MESSAGES OVERLAY ── */
 #overlay-panel{display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;}
 #overlay-panel.open{display:flex;}
 #overlay-bg{position:fixed;inset:0;background:rgba(20,8,2,.85);}
@@ -121,8 +112,9 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .ov-textarea{width:100%;border:1px solid #5a3520;background:#3B1F0F;color:#fff;padding:8px 10px;font-size:12px;font-family:Georgia,serif;min-height:80px;resize:vertical;}
 .ov-textarea:focus{border-color:#c8a882;outline:none;}
 
-.desc-text-block{font-size:13px;color:#c8a882;line-height:1.7;margin-bottom:8px;}
-
+.desc-text-block{font-size:13px;color:#c8a882;line-height:1.7;margin-bottom:8px;white-space:pre-wrap;}
+.desc-edit-inline-btn{font-size:11px;padding:5px 10px;border:1px solid #5a3520;background:none;color:#c8a882;}
+.desc-edit-inline-btn:hover{color:#FA8072;border-color:#FA8072;}
 
 .ov-btn-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;}
 .ov-close{font-size:12px;padding:8px 20px;border:1px solid #5a3520;background:none;color:#fff;}
@@ -130,6 +122,14 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .ov-submit{font-size:12px;padding:8px 20px;border:1px solid #fff;background:#3B1F0F;color:#fff;}
 .ov-submit:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
 .ov-sent{display:none;font-size:12px;color:#8BC34A;margin-top:12px;}
+.ov-error{font-size:11px;color:#FA8072;min-height:14px;margin-top:-12px;margin-bottom:12px;}
+
+.msg-item{border:1px solid #5a3520;padding:10px;margin-bottom:10px;}
+.msg-meta{font-size:10px;color:#8a6040;margin-bottom:4px;}
+.msg-who{font-size:12px;color:#fff;margin-bottom:6px;}
+.msg-branch{font-size:11px;color:#c8a882;margin-bottom:6px;font-style:italic;}
+.msg-body{font-size:12px;color:#c8a882;white-space:pre-wrap;line-height:1.5;margin-bottom:8px;}
+.msg-empty{font-size:12px;color:#c8a882;}
 </style>
 </head>
 <body>
@@ -140,6 +140,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
     <button class="nav-btn" onclick="showAbout()">About</button>
     <button class="nav-btn" onclick="toggleGrid()" id="grid-btn">View as grid</button>
     <button class="nav-btn" onclick="showOverlay('contact')">Contact</button>
+    <button class="nav-btn" onclick="showOverlay('messages')" id="messages-btn" style="display:none;">Messages</button>
+    <button class="nav-btn" onclick="handleAuthClick()" id="auth-btn">Admin</button>
   </div>
 </nav>
 
@@ -152,10 +154,11 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 </div>
 
 <div id="canvas-wrap">
-  <div id="canvas">
+  <div id="load-status">Loading family tree…</div>
+  <div id="canvas" style="display:none;">
     <svg class="connectors" id="svg-lines"></svg>
     <div id="root-row">
-      <div id="root-photo" onclick="openPanel('root')">&#128100;</div>
+      <div id="root-photo" onclick="openPanel('root')">👤</div>
       <div>
         <div id="root-name-label">Your Name</div>
         <div id="root-quote" onclick="editQuote()">"Add a quote or note…"</div>
@@ -178,10 +181,10 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
   <div class="about-body" id="about-body-text"></div>
   <textarea class="about-textarea" id="about-textarea"></textarea>
   <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
-    <button class="about-edit-btn" id="about-edit-btn" onclick="startAboutEdit()">
+    <button class="dp-btn" id="about-edit-btn" style="display:none;" onclick="startAboutEdit()">
       <i class="ti ti-edit" aria-hidden="true"></i> Edit
     </button>
-    <button class="about-save-btn" id="about-save-btn" onclick="saveAbout()">
+    <button class="dp-btn" id="about-save-btn" style="display:none;" onclick="saveAbout()">
       <i class="ti ti-check" aria-hidden="true"></i> Save
     </button>
   </div>
@@ -194,19 +197,30 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <i class="ti ti-arrow-left" aria-hidden="true"></i> Back
     </button>
     <nav id="breadcrumb-bar" aria-label="Lineage breadcrumb"></nav>
-    <div id="detail-photo-wrap">&#128100;</div>
+    <div id="detail-photo-wrap">👤</div>
     <div>
       <div id="detail-name"></div>
       <div id="detail-rel"></div>
     </div>
     <div>
-      <div id="detail-desc-text" style="font-size:13px;color:#c8a882;line-height:1.6;min-height:36px;"></div>
+      <div id="person-edit-fields">
+        <div class="dp-label">Name</div>
+        <input class="ov-input" id="edit-name" type="text">
+        <div class="dp-label">Relationship</div>
+        <input class="ov-input" id="edit-rel" type="text">
+        <div class="dp-label">Icon (emoji, used when no photo)</div>
+        <input class="ov-input" id="edit-icon" type="text" maxlength="8">
+        <div class="dp-label">Photo URL (optional)</div>
+        <input class="ov-input" id="edit-photo" type="text" placeholder="https://…">
+        <div class="dp-label">Description</div>
+      </div>
+      <div id="detail-desc-text" style="font-size:13px;color:#c8a882;line-height:1.6;min-height:36px;white-space:pre-wrap;"></div>
       <textarea id="detail-edit-area" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Write about this person…"></textarea>
-      <div style="display:flex;margin-top:10px;">
-        <button class="dp-btn" id="desc-edit-btn" onclick="startDescEdit()">
+      <div style="display:none;margin-top:10px;" id="desc-btn-row">
+        <button class="dp-btn" id="desc-edit-btn" onclick="startPersonEdit()">
           <i class="ti ti-edit" aria-hidden="true"></i> Edit
         </button>
-        <button class="dp-btn" id="desc-save-btn" style="display:none;" onclick="saveDesc()">
+        <button class="dp-btn" id="desc-save-btn" style="display:none;" onclick="savePerson()">
           <i class="ti ti-check" aria-hidden="true"></i> Save
         </button>
       </div>
@@ -216,7 +230,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <div class="dp-label">Sources &amp; citations</div>
       <div id="sources-list"></div>
       <textarea id="source-input" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Paste a source, citation, or URL…"></textarea>
-      <div style="display:flex;margin-top:10px;">
+      <div style="display:none;margin-top:10px;" id="src-btn-row">
         <button class="dp-btn" id="src-add-btn" onclick="startSrcAdd()">
           <i class="ti ti-plus" aria-hidden="true"></i> Add source
         </button>
@@ -228,7 +242,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
   </div>
 </div>
 
-<!-- CONTACT / QUOTE OVERLAY -->
+<!-- CONTACT / QUOTE / LOGIN / MESSAGES OVERLAY -->
 <div id="overlay-panel">
   <div id="overlay-bg" onclick="closeOverlay()"></div>
   <div id="overlay-box">
@@ -240,86 +254,159 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <script>
 /* ════════════════════════════════════════
-   DATA — edit people, connections, and
-   positions here to customise the tree.
+   SUPABASE CLIENT
    ════════════════════════════════════════ */
-
-const people = [
-  { id:'root', name:'Your Name',         rel:'You',                    ico:'&#128100;' },
-  { id:'p1',   name:'Father',            rel:'Father',                 ico:'&#128104;' },
-  { id:'p2',   name:'Mother',            rel:'Mother',                 ico:'&#128105;' },
-  { id:'p3',   name:'Stepfather',        rel:'Stepfather',             ico:'&#128104;' },
-  { id:'p4',   name:'Stepmother',        rel:'Stepmother',             ico:'&#128105;' },
-  { id:'p5',   name:'Guardian',          rel:'Guardian',               ico:'&#129489;' },
-  { id:'p6',   name:'Adoptive Father',   rel:'Adoptive Father',        ico:'&#128104;' },
-  { id:'p7',   name:'Adoptive Mother',   rel:'Adoptive Mother',        ico:'&#128105;' },
-  { id:'p8',   name:'Foster Parent',     rel:'Foster Parent',          ico:'&#129489;' },
-  { id:'gp1',  name:'Grandfather',       rel:'Paternal Grandfather',   ico:'&#128116;' },
-  { id:'gp2',  name:'Grandmother',       rel:'Paternal Grandmother',   ico:'&#128117;' },
-  { id:'gp3',  name:'Grandfather',       rel:'Maternal Grandfather',   ico:'&#128116;' },
-  { id:'gp4',  name:'Grandmother',       rel:'Maternal Grandmother',   ico:'&#128117;' },
-  { id:'gp5',  name:'Grandfather',       rel:'Step-Grandfather',       ico:'&#128116;' },
-  { id:'gp6',  name:'Grandmother',       rel:'Step-Grandmother',       ico:'&#128117;' },
-  { id:'gg1',  name:'Great-Grandfather', rel:'Pat. Great-Grandfather', ico:'&#128116;' },
-  { id:'gg2',  name:'Great-Grandmother', rel:'Pat. Great-Grandmother', ico:'&#128117;' },
-  { id:'gg3',  name:'Great-Grandfather', rel:'Mat. Great-Grandfather', ico:'&#128116;' },
-  { id:'gg4',  name:'Great-Grandmother', rel:'Mat. Great-Grandmother', ico:'&#128117;' },
-  { id:'gg5',  name:'Great-Grandfather', rel:'Step Great-Grandfather', ico:'&#128116;' },
-  { id:'gg6',  name:'Great-Grandmother', rel:'Step Great-Grandmother', ico:'&#128117;' },
-];
-
-/* parent → child connections */
-const conns = [
-  ['root','p1'], ['root','p2'], ['root','p3'], ['root','p4'],
-  ['root','p5'], ['root','p6'], ['root','p7'], ['root','p8'],
-  ['p1','gp1'],  ['p1','gp2'],
-  ['p2','gp3'],  ['p2','gp4'],
-  ['p3','gp5'],  ['p3','gp6'],
-  ['gp1','gg1'], ['gp1','gg2'],
-  ['gp3','gg3'], ['gp3','gg4'],
-  ['gp5','gg5'], ['gp5','gg6'],
-];
-
-/* row groupings */
-const row1Ids = ['p1','p2','p3','p4','p5','p6','p7','p8'];
-const row2Ids = ['gp1','gp2','gp3','gp4','gp5','gp6'];
-const row3Ids = ['gg1','gg2','gg3','gg4','gg5','gg6'];
-
-/* layout constants */
-const NW = 52, NH = 72;          /* node photo width / height */
-const RW = 160, RH = 100;        /* root photo width / height */
-const HGAP = 100;                 /* horizontal gap between nodes */
-const ROW1Y = 180, ROW2Y = 340, ROW3Y = 500;
-const CONNECTOR_GAP = 8;         /* gap between line end and photo edge */
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ════════════════════════════════════════
-   STATE
+   STATE — all content comes from Supabase.
    ════════════════════════════════════════ */
-const descs = {}, srcs = {};
-let activeId   = null;
-let zoomLevel  = 1;
-let rootQuote  = '"Add a quote or note…"';
-let gridMode   = false;
-let contactTab = 'feedback';
+let people = [];          // [{id,name,rel,icon,photo_url,description,generation,sort_order}]
+let connsArr = [];        // [[parentId, childId], ...]
+let sourcesMap = {};       // personId -> [{id, text}]
+let siteContent = { about_text:'', root_quote:'"Add a quote or note…"', feedback_intro:'', contrib_intro:'' };
 
-let aboutText     = 'This is a family archive website. Click any photo in the tree to view profiles, add descriptions, and cite sources.\n\nScroll left and right on the tree to see all branches. Use the zoom controls to navigate generations, or switch to grid view for a complete overview.';
-let feedbackIntro = 'Send us your thoughts or corrections about this archive.';
-let contribIntro  = 'Submit a new branch to the tree.\n\nHave records, photos, or information about a family member not yet included? Share them here and we\'ll review your contribution.';
+let activeId    = null;
+let zoomLevel   = 1;
+let gridMode    = false;
+let contactTab  = 'feedback';
+let isAdmin     = false;
+
+/* layout constants */
+const NW = 52, NH = 72;
+const RW = 160, RH = 100;
+const HGAP = 100;
+const ROW_Y = { 1: 180, 2: 340, 3: 500 };
+const CONNECTOR_GAP = 8;
 
 const pos = {};
 
 /* ════════════════════════════════════════
+   DATA LOADING
+   ════════════════════════════════════════ */
+async function loadAll() {
+  const [peopleRes, connRes, srcRes, contentRes] = await Promise.all([
+    supa.from('people').select('*').order('generation').order('sort_order'),
+    supa.from('connections').select('*'),
+    supa.from('sources').select('*').order('sort_order'),
+    supa.from('site_content').select('*').eq('id', 1).single(),
+  ]);
+
+  if (peopleRes.error) throw peopleRes.error;
+
+  people   = peopleRes.data || [];
+  connsArr = (connRes.data || []).map(c => [c.parent_id, c.child_id]);
+
+  sourcesMap = {};
+  (srcRes.data || []).forEach(s => {
+    if (!sourcesMap[s.person_id]) sourcesMap[s.person_id] = [];
+    sourcesMap[s.person_id].push(s);
+  });
+
+  if (contentRes.data) siteContent = contentRes.data;
+}
+
+async function boot() {
+  try {
+    await loadAll();
+    document.getElementById('load-status').style.display = 'none';
+    document.getElementById('canvas').style.display = 'block';
+    buildTree();
+    updateVis();
+  } catch (err) {
+    document.getElementById('load-status').textContent =
+      'Could not load the family tree. If you just set this up, make sure config.js has your real Supabase URL and anon key, and that supabase/schema.sql has been run.';
+    console.error(err);
+    return;
+  }
+  await refreshAuthState();
+}
+
+/* ════════════════════════════════════════
+   AUTH
+   ════════════════════════════════════════ */
+async function refreshAuthState() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session && session.user) {
+    const { data } = await supa.rpc('is_admin');
+    isAdmin = !!data;
+  } else {
+    isAdmin = false;
+  }
+  updateAdminUI();
+}
+
+supa.auth.onAuthStateChange(() => { refreshAuthState(); });
+
+function updateAdminUI() {
+  document.getElementById('auth-btn').textContent = isAdmin ? 'Log out' : 'Admin';
+  document.getElementById('messages-btn').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('about-edit-btn').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('desc-btn-row').style.display = isAdmin ? 'flex' : 'none';
+  document.getElementById('src-btn-row').style.display = isAdmin ? 'flex' : 'none';
+  const q = document.getElementById('root-quote');
+  q.classList.toggle('editable', isAdmin);
+}
+
+function handleAuthClick() {
+  if (isAdmin) doLogout(); else showOverlay('login');
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = 'Sign-in failed. Check your email and password.'; return; }
+  closeOverlay();
+  await refreshAuthState();
+}
+
+async function doLogout() {
+  await supa.auth.signOut();
+  await refreshAuthState();
+  setView('tree');
+}
+
+/* ════════════════════════════════════════
+   DOM-SAFE BUILDERS (avoid innerHTML for
+   any data that came from the database)
+   ════════════════════════════════════════ */
+function buildAvatar(p, className) {
+  const wrap = document.createElement('div');
+  wrap.className = className;
+  if (p.photo_url) {
+    const img = document.createElement('img');
+    img.src = p.photo_url;
+    img.alt = p.name || '';
+    wrap.appendChild(img);
+  } else {
+    wrap.textContent = p.icon || '👤';
+  }
+  return wrap;
+}
+
+/* ════════════════════════════════════════
    TREE BUILDING
    ════════════════════════════════════════ */
+function generationIds(gen) {
+  return people.filter(p => p.generation === gen).map(p => p.id);
+}
+
 function computePos() {
-  const maxCols = Math.max(row1Ids.length, row2Ids.length, row3Ids.length);
+  const row1Ids = generationIds(1), row2Ids = generationIds(2), row3Ids = generationIds(3);
+  const maxCols = Math.max(row1Ids.length, row2Ids.length, row3Ids.length, 1);
   const totalW  = maxCols * (NW + HGAP) + 240;
   const cx      = totalW / 2;
   pos['root'] = { x: cx, y: 20 };
   [row1Ids, row2Ids, row3Ids].forEach((ids, ri) => {
-    const y = [ROW1Y, ROW2Y, ROW3Y][ri];
+    const y = ROW_Y[ri + 1];
     ids.forEach((id, i) => {
       const startX = cx - (ids.length - 1) * (NW + HGAP) / 2;
       pos[id] = { x: startX + i * (NW + HGAP), y };
@@ -332,7 +419,10 @@ function buildTree() {
   const totalW  = computePos();
   const canvas  = document.getElementById('canvas');
   const svg     = document.getElementById('svg-lines');
-  const totalH  = ROW3Y + NH + 100;
+  const totalH  = ROW_Y[3] + NH + 100;
+
+  document.querySelectorAll('.node').forEach(n => n.remove());
+  svg.innerHTML = '';
 
   canvas.style.width  = totalW + 'px';
   canvas.style.height = totalH + 'px';
@@ -340,46 +430,61 @@ function buildTree() {
   svg.style.height    = totalH + 'px';
   svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
 
-  /* position root row */
+  const root = people.find(p => p.id === 'root');
   const rp = pos['root'];
   const rr = document.getElementById('root-row');
   rr.style.left = (rp.x - RW / 2 - 10) + 'px';
   rr.style.top  = rp.y + 'px';
+  const rootPhotoWrap = document.getElementById('root-photo');
+  rootPhotoWrap.innerHTML = '';
+  if (root) {
+    if (root.photo_url) {
+      const img = document.createElement('img');
+      img.src = root.photo_url; img.alt = root.name || '';
+      rootPhotoWrap.appendChild(img);
+    } else {
+      rootPhotoWrap.textContent = root.icon || '👤';
+    }
+    document.getElementById('root-name-label').textContent = root.name;
+  }
+  document.getElementById('root-quote').textContent = siteContent.root_quote;
 
-  /* build person nodes */
   people.filter(p => p.id !== 'root').forEach(p => {
     const pp = pos[p.id]; if (!pp) return;
-    const el = document.createElement('div');
-    el.className = 'node';
-    el.id        = 'node-' + p.id;
-    el.style.left = (pp.x - NW / 2) + 'px';
-    el.style.top  = pp.y + 'px';
-    el.innerHTML  = `<div class="node-photo">${p.ico}</div><div class="node-name">${p.name}</div>`;
-    el.onclick    = () => openPanel(p.id);
-    canvas.appendChild(el);
+    const node = document.createElement('div');
+    node.className = 'node';
+    node.id = 'node-' + p.id;
+    node.style.left = (pp.x - NW / 2) + 'px';
+    node.style.top  = pp.y + 'px';
+    node.appendChild(buildAvatar(p, 'node-photo'));
+    const nameEl = document.createElement('div');
+    nameEl.className = 'node-name';
+    nameEl.textContent = p.name;
+    node.appendChild(nameEl);
+    node.onclick = () => openPanel(p.id);
+    canvas.appendChild(node);
   });
 
-  /* draw connector lines */
-  conns.forEach(([a, b]) => {
+  connsArr.forEach(([a, b]) => {
     const pa = pos[a], pb = pos[b];
+    if (!pa || !pb) return;
     let x1, y1;
     if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + RH + CONNECTOR_GAP; }
     else              { x1 = pa.x;          y1 = pa.y + NH + CONNECTOR_GAP; }
     const x2 = pb.x;
     const y2 = pb.y - CONNECTOR_GAP;
     const my = Math.round((y1 + y2) / 2);
-
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     line.setAttribute('points', `${x1},${y1} ${x1},${my} ${x2},${my} ${x2},${y2}`);
-    line.setAttribute('fill',         'none');
-    line.setAttribute('stroke',       '#ffffff');
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', '#ffffff');
     line.setAttribute('stroke-width', '1.2');
     svg.appendChild(line);
   });
 
   buildGrid();
-  document.getElementById('about-body-text').textContent = aboutText;
-  document.getElementById('about-textarea').value        = aboutText;
+  document.getElementById('about-body-text').textContent = siteContent.about_text;
+  document.getElementById('about-textarea').value = siteContent.about_text;
 }
 
 function buildGrid() {
@@ -388,8 +493,12 @@ function buildGrid() {
   people.forEach(p => {
     const c = document.createElement('div');
     c.className = 'grid-card';
-    c.innerHTML = `<div class="grid-card-img">${p.ico}</div><div class="grid-card-name">${p.name}</div>`;
-    c.onclick   = () => openPanel(p.id);
+    c.appendChild(buildAvatar(p, 'grid-card-img'));
+    const nameEl = document.createElement('div');
+    nameEl.className = 'grid-card-name';
+    nameEl.textContent = p.name;
+    c.appendChild(nameEl);
+    c.onclick = () => openPanel(p.id);
     gi.appendChild(c);
   });
 }
@@ -421,14 +530,10 @@ function zoom(d) {
 }
 
 function updateVis() {
-  const lv = {};
-  row1Ids.forEach(id => lv[id] = 1);
-  row2Ids.forEach(id => lv[id] = 2);
-  row3Ids.forEach(id => lv[id] = 3);
   const sh = { 0: true, 1: zoomLevel >= 0.45, 2: zoomLevel >= 0.6, 3: zoomLevel >= 0.75 };
   people.filter(p => p.id !== 'root').forEach(p => {
     const el = document.getElementById('node-' + p.id);
-    if (el) el.style.opacity = sh[lv[p.id] ?? 0] ? '1' : '0.08';
+    if (el) el.style.opacity = sh[p.generation] ? '1' : '0.08';
   });
 }
 
@@ -438,17 +543,21 @@ function updateVis() {
 function openPanel(id) {
   const p = people.find(x => x.id === id); if (!p) return;
   activeId = id;
-  document.getElementById('detail-photo-wrap').innerHTML  = p.ico;
-  document.getElementById('detail-name').textContent      = p.name;
-  document.getElementById('detail-rel').textContent       = p.rel;
-  document.getElementById('detail-desc-text').textContent = descs[id] || 'No description yet.';
-  document.getElementById('detail-edit-area').value       = descs[id] || '';
-  document.getElementById('detail-edit-area').style.display  = 'none';
-  document.getElementById('desc-save-btn').style.display     = 'none';
-  document.getElementById('desc-edit-btn').style.display     = 'inline-block';
-  document.getElementById('source-input').style.display      = 'none';
-  document.getElementById('src-save-btn').style.display      = 'none';
-  document.getElementById('src-add-btn').style.display       = 'inline-block';
+  const photoWrap = document.getElementById('detail-photo-wrap');
+  photoWrap.innerHTML = '';
+  if (p.photo_url) {
+    const img = document.createElement('img'); img.src = p.photo_url; img.alt = p.name || '';
+    photoWrap.appendChild(img);
+  } else {
+    photoWrap.textContent = p.icon || '👤';
+  }
+  document.getElementById('detail-name').textContent = p.name;
+  document.getElementById('detail-rel').textContent  = p.rel;
+  document.getElementById('detail-desc-text').textContent = p.description || 'No description yet.';
+  exitPersonEdit();
+  document.getElementById('source-input').style.display  = 'none';
+  document.getElementById('src-save-btn').style.display  = 'none';
+  document.getElementById('src-add-btn').style.display   = 'inline-block';
   renderSrcs(id);
   renderBreadcrumb(id);
   document.getElementById('detail-panel').classList.add('open');
@@ -462,23 +571,49 @@ function closePanel() {
   activeId = null;
 }
 
-function startDescEdit() {
+function startPersonEdit() {
+  if (!isAdmin || !activeId) return;
+  const p = people.find(x => x.id === activeId); if (!p) return;
+  document.getElementById('edit-name').value  = p.name || '';
+  document.getElementById('edit-rel').value   = p.rel || '';
+  document.getElementById('edit-icon').value  = p.icon || '';
+  document.getElementById('edit-photo').value = p.photo_url || '';
+  document.getElementById('detail-edit-area').value = p.description || '';
+  document.getElementById('person-edit-fields').style.display = 'flex';
   document.getElementById('detail-edit-area').style.display = 'block';
-  document.getElementById('desc-save-btn').style.display    = 'inline-block';
-  document.getElementById('desc-edit-btn').style.display    = 'none';
-  document.getElementById('detail-edit-area').focus();
+  document.getElementById('detail-desc-text').style.display = 'none';
+  document.getElementById('desc-save-btn').style.display = 'inline-block';
+  document.getElementById('desc-edit-btn').style.display = 'none';
 }
 
-function saveDesc() {
-  if (!activeId) return;
-  const v = document.getElementById('detail-edit-area').value.trim();
-  descs[activeId] = v;
-  document.getElementById('detail-desc-text').textContent    = v || 'No description yet.';
-  document.getElementById('detail-edit-area').style.display  = 'none';
-  document.getElementById('desc-save-btn').style.display     = 'none';
-  document.getElementById('desc-edit-btn').style.display     = 'inline-block';
+function exitPersonEdit() {
+  document.getElementById('person-edit-fields').style.display = 'none';
+  document.getElementById('detail-edit-area').style.display = 'none';
+  document.getElementById('detail-desc-text').style.display = 'block';
+  document.getElementById('desc-save-btn').style.display = 'none';
+  document.getElementById('desc-edit-btn').style.display = 'inline-block';
 }
 
+async function savePerson() {
+  if (!activeId || !isAdmin) return;
+  const updates = {
+    name: document.getElementById('edit-name').value.trim() || 'Unnamed',
+    rel: document.getElementById('edit-rel').value.trim(),
+    icon: document.getElementById('edit-icon').value.trim() || '👤',
+    photo_url: document.getElementById('edit-photo').value.trim() || null,
+    description: document.getElementById('detail-edit-area').value.trim(),
+  };
+  const { error } = await supa.from('people').update(updates).eq('id', activeId);
+  if (error) { alert('Save failed — you may need to sign in again as admin.'); return; }
+  Object.assign(people.find(x => x.id === activeId), updates);
+  buildTree();
+  updateVis();
+  openPanel(activeId);
+}
+
+/* ════════════════════════════════════════
+   SOURCES
+   ════════════════════════════════════════ */
 function startSrcAdd() {
   document.getElementById('source-input').style.display  = 'block';
   document.getElementById('src-save-btn').style.display  = 'inline-block';
@@ -486,28 +621,46 @@ function startSrcAdd() {
   document.getElementById('source-input').focus();
 }
 
-function saveSrc() {
+async function saveSrc() {
   if (!activeId) return;
   const v = document.getElementById('source-input').value.trim(); if (!v) return;
-  if (!srcs[activeId]) srcs[activeId] = [];
-  srcs[activeId].push(v);
-  document.getElementById('source-input').value          = '';
-  document.getElementById('source-input').style.display  = 'none';
+  const nextOrder = (sourcesMap[activeId] || []).length;
+  const { data, error } = await supa.from('sources')
+    .insert({ person_id: activeId, text: v, sort_order: nextOrder })
+    .select().single();
+  if (error) { alert('Could not add source — you may need to sign in again as admin.'); return; }
+  if (!sourcesMap[activeId]) sourcesMap[activeId] = [];
+  sourcesMap[activeId].push(data);
+  document.getElementById('source-input').value = '';
+  document.getElementById('source-input').style.display = 'none';
   document.getElementById('src-save-btn').style.display  = 'none';
   document.getElementById('src-add-btn').style.display   = 'inline-block';
   renderSrcs(activeId);
 }
 
-function delSrc(id, i) { srcs[id].splice(i, 1); renderSrcs(id); }
+async function delSrc(srcId) {
+  const { error } = await supa.from('sources').delete().eq('id', srcId);
+  if (error) { alert('Could not delete source.'); return; }
+  sourcesMap[activeId] = (sourcesMap[activeId] || []).filter(s => s.id !== srcId);
+  renderSrcs(activeId);
+}
 
 function renderSrcs(id) {
   const list = document.getElementById('sources-list');
   list.innerHTML = '';
-  (srcs[id] || []).forEach((s, i) => {
-    const d = document.createElement('div');
-    d.className = 'src-item';
-    d.innerHTML = `<span class="src-num">[${i + 1}]</span><span style="flex:1">${s}</span><button class="src-del" onclick="delSrc('${id}',${i})">×</button>`;
-    list.appendChild(d);
+  (sourcesMap[id] || []).forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'src-item';
+    const num = document.createElement('span'); num.className = 'src-num'; num.textContent = `[${i + 1}]`;
+    const txt = document.createElement('span'); txt.style.flex = '1'; txt.textContent = s.text;
+    row.appendChild(num); row.appendChild(txt);
+    if (isAdmin) {
+      const del = document.createElement('button');
+      del.className = 'src-del'; del.textContent = '×';
+      del.onclick = () => delSrc(s.id);
+      row.appendChild(del);
+    }
+    list.appendChild(row);
   });
 }
 
@@ -515,18 +668,21 @@ function renderSrcs(id) {
    ABOUT PAGE EDITING
    ════════════════════════════════════════ */
 function startAboutEdit() {
+  if (!isAdmin) return;
   document.getElementById('about-body-text').style.display = 'none';
   document.getElementById('about-textarea').style.display  = 'block';
-  document.getElementById('about-textarea').value          = aboutText;
+  document.getElementById('about-textarea').value          = siteContent.about_text;
   document.getElementById('about-edit-btn').style.display  = 'none';
   document.getElementById('about-save-btn').style.display  = 'inline-block';
   document.getElementById('about-textarea').focus();
 }
 
-function saveAbout() {
+async function saveAbout() {
   const v = document.getElementById('about-textarea').value.trim();
-  aboutText = v || aboutText;
-  document.getElementById('about-body-text').textContent   = aboutText;
+  const { error } = await supa.from('site_content').update({ about_text: v }).eq('id', 1);
+  if (error) { alert('Save failed — you may need to sign in again as admin.'); return; }
+  siteContent.about_text = v;
+  document.getElementById('about-body-text').textContent   = v;
   document.getElementById('about-body-text').style.display = 'block';
   document.getElementById('about-textarea').style.display  = 'none';
   document.getElementById('about-edit-btn').style.display  = 'inline-block';
@@ -534,155 +690,278 @@ function saveAbout() {
 }
 
 /* ════════════════════════════════════════
-   OVERLAY (CONTACT / QUOTE)
+   OVERLAY (CONTACT / QUOTE / LOGIN / MESSAGES)
    ════════════════════════════════════════ */
-function editQuote()  { showOverlay('quote'); }
-function saveQuote()  {
+function editQuote() { if (isAdmin) showOverlay('quote'); }
+
+async function saveQuote() {
   const v = document.getElementById('quote-input').value.trim();
-  rootQuote = v ? `"${v}"` : '"Add a quote or note…"';
-  document.getElementById('root-quote').textContent = rootQuote;
+  const q = v ? `"${v}"` : '"Add a quote or note…"';
+  const { error } = await supa.from('site_content').update({ root_quote: q }).eq('id', 1);
+  if (error) { alert('Save failed.'); return; }
+  siteContent.root_quote = q;
+  document.getElementById('root-quote').textContent = q;
   closeOverlay();
 }
 
-function showOverlay(type) {
-  document.getElementById('ov-title').textContent   = type === 'contact' ? 'Contact' : 'Edit quote';
-  document.getElementById('ov-content').innerHTML   =
-    type === 'contact' ? buildContact() :
-    `<div class="ov-field"><label>Quote or note</label>
-     <input class="ov-input" id="quote-input" type="text" value="${rootQuote.replace(/^"|"$/g, '')}"></div>
-     <div class="ov-btn-row"><button class="ov-submit" onclick="saveQuote()">Save</button></div>`;
+async function showOverlay(type) {
+  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages' };
+  document.getElementById('ov-title').textContent = titles[type] || '';
+  const content = document.getElementById('ov-content');
+  content.innerHTML = '';
+
+  if (type === 'quote') {
+    const field = document.createElement('div'); field.className = 'ov-field';
+    const label = document.createElement('label'); label.textContent = 'Quote or note';
+    const input = document.createElement('input'); input.className = 'ov-input'; input.id = 'quote-input'; input.type = 'text';
+    input.value = siteContent.root_quote.replace(/^"|"$/g, '');
+    field.appendChild(label); field.appendChild(input);
+    const row = document.createElement('div'); row.className = 'ov-btn-row';
+    const btn = document.createElement('button'); btn.className = 'ov-submit'; btn.textContent = 'Save'; btn.onclick = saveQuote;
+    row.appendChild(btn);
+    content.appendChild(field); content.appendChild(row);
+  } else if (type === 'login') {
+    content.appendChild(buildLoginForm());
+  } else if (type === 'contact') {
+    content.appendChild(buildContact());
+  } else if (type === 'messages') {
+    const loading = document.createElement('div'); loading.className = 'msg-empty'; loading.textContent = 'Loading…';
+    content.appendChild(loading);
+    document.getElementById('overlay-panel').classList.add('open');
+    content.innerHTML = '';
+    content.appendChild(await buildMessagesPanel());
+    return;
+  }
   document.getElementById('overlay-panel').classList.add('open');
 }
 
+function buildLoginForm() {
+  const wrap = document.createElement('div');
+
+  const emailField = document.createElement('div'); emailField.className = 'ov-field';
+  const emailLabel = document.createElement('label'); emailLabel.textContent = 'Email';
+  const emailInput = document.createElement('input'); emailInput.className = 'ov-input'; emailInput.id = 'login-email'; emailInput.type = 'email';
+  emailField.appendChild(emailLabel); emailField.appendChild(emailInput);
+
+  const pwField = document.createElement('div'); pwField.className = 'ov-field';
+  const pwLabel = document.createElement('label'); pwLabel.textContent = 'Password';
+  const pwInput = document.createElement('input'); pwInput.className = 'ov-input'; pwInput.id = 'login-password'; pwInput.type = 'password';
+  pwInput.onkeydown = (e) => { if (e.key === 'Enter') doLogin(); };
+  pwField.appendChild(pwLabel); pwField.appendChild(pwInput);
+
+  const err = document.createElement('div'); err.className = 'ov-error'; err.id = 'login-error';
+
+  const row = document.createElement('div'); row.className = 'ov-btn-row';
+  const btn = document.createElement('button'); btn.className = 'ov-submit'; btn.textContent = 'Sign in'; btn.onclick = doLogin;
+  row.appendChild(btn);
+
+  wrap.appendChild(emailField); wrap.appendChild(pwField); wrap.appendChild(err); wrap.appendChild(row);
+  return wrap;
+}
+
+function buildIntroBlock(kind, introText) {
+  const wrap = document.createElement('div'); wrap.style.marginBottom = '16px';
+  const textEl = document.createElement('div'); textEl.className = 'desc-text-block'; textEl.id = kind + '-intro-text'; textEl.textContent = introText;
+  const editArea = document.createElement('textarea'); editArea.className = 'dp-textarea'; editArea.id = kind + '-intro-edit';
+  editArea.style.display = 'none'; editArea.style.marginTop = '6px'; editArea.placeholder = 'Edit this description…';
+  const btnRow = document.createElement('div'); btnRow.style.display = isAdmin ? 'flex' : 'none'; btnRow.style.gap = '8px'; btnRow.style.marginTop = '6px';
+  const editBtn = document.createElement('button'); editBtn.className = 'desc-edit-inline-btn'; editBtn.id = kind + '-intro-edit-btn'; editBtn.textContent = 'Edit description';
+  editBtn.onclick = () => startIntroEdit(kind);
+  const saveBtn = document.createElement('button'); saveBtn.className = 'desc-edit-inline-btn'; saveBtn.id = kind + '-intro-save-btn'; saveBtn.style.display = 'none'; saveBtn.textContent = 'Save';
+  saveBtn.onclick = () => saveIntroEdit(kind);
+  btnRow.appendChild(editBtn); btnRow.appendChild(saveBtn);
+  wrap.appendChild(textEl); wrap.appendChild(editArea); wrap.appendChild(btnRow);
+  return wrap;
+}
+
+function buildFormFields(kind, fields) {
+  const frag = document.createDocumentFragment();
+  fields.forEach(f => {
+    const field = document.createElement('div'); field.className = 'ov-field';
+    const label = document.createElement('label'); label.textContent = f.label;
+    const input = document.createElement(f.textarea ? 'textarea' : 'input');
+    input.className = f.textarea ? 'ov-textarea' : 'ov-input';
+    input.id = kind + '-' + f.id;
+    if (!f.textarea) input.type = f.type || 'text';
+    field.appendChild(label); field.appendChild(input);
+    frag.appendChild(field);
+  });
+  return frag;
+}
+
 function buildContact() {
-  const fbBody = `
-    <div style="margin-bottom:16px;">
-      <div class="desc-text-block" id="fb-intro-text">${feedbackIntro}</div>
-      <textarea class="dp-textarea" id="fb-intro-edit" style="display:none;margin-top:6px;" placeholder="Edit this description…"></textarea>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="desc-edit-inline-btn" id="fb-intro-edit-btn" onclick="startIntroEdit('fb')">
-          <i class="ti ti-edit" aria-hidden="true"></i> Edit description
-        </button>
-        <button class="desc-edit-inline-btn" id="fb-intro-save-btn" style="display:none;" onclick="saveIntroEdit('fb')">
-          <i class="ti ti-check" aria-hidden="true"></i> Save
-        </button>
-      </div>
-    </div>
-    <div class="ov-field"><label>Your name</label><input class="ov-input" id="fb-name" type="text"></div>
-    <div class="ov-field"><label>Your email</label><input class="ov-input" id="fb-email" type="email"></div>
-    <div class="ov-field"><label>Email body</label><textarea class="ov-textarea" id="fb-msg"></textarea></div>
-    <div class="ov-btn-row"><button class="ov-submit" onclick="sendForm('fb')">Send feedback</button></div>
-    <div class="ov-sent" id="fb-sent">Sent! Thank you for your feedback.</div>`;
+  const wrap = document.createElement('div');
 
-  const ctBody = `
-    <div style="margin-bottom:16px;">
-      <div class="desc-text-block" id="ct-intro-text">${contribIntro}</div>
-      <textarea class="dp-textarea" id="ct-intro-edit" style="display:none;margin-top:6px;" placeholder="Edit this description…"></textarea>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="desc-edit-inline-btn" id="ct-intro-edit-btn" onclick="startIntroEdit('ct')">
-          <i class="ti ti-edit" aria-hidden="true"></i> Edit description
-        </button>
-        <button class="desc-edit-inline-btn" id="ct-intro-save-btn" style="display:none;" onclick="saveIntroEdit('ct')">
-          <i class="ti ti-check" aria-hidden="true"></i> Save
-        </button>
-      </div>
-    </div>
-    <div class="ov-field"><label>Your name</label><input class="ov-input" id="ct-name" type="text"></div>
-    <div class="ov-field"><label>Your email</label><input class="ov-input" id="ct-email" type="email"></div>
-    <div class="ov-field"><label>Name of submission</label><input class="ov-input" id="ct-branch" type="text"></div>
-    <div class="ov-field"><label>Email body</label><textarea class="ov-textarea" id="ct-msg"></textarea></div>
-    <div class="ov-btn-row"><button class="ov-submit" onclick="sendForm('ct')">Submit contribution</button></div>
-    <div class="ov-sent" id="ct-sent">Submitted! We'll be in touch.</div>`;
+  const tabs = document.createElement('div'); tabs.className = 'ov-tabs';
+  const fbTab = document.createElement('button'); fbTab.className = 'ov-tab' + (contactTab === 'feedback' ? ' active' : ''); fbTab.textContent = 'Give feedback';
+  fbTab.onclick = () => setTab('feedback');
+  const ctTab = document.createElement('button'); ctTab.className = 'ov-tab' + (contactTab === 'contrib' ? ' active' : ''); ctTab.textContent = 'Submit a contribution';
+  ctTab.onclick = () => setTab('contrib');
+  tabs.appendChild(fbTab); tabs.appendChild(ctTab);
+  wrap.appendChild(tabs);
 
-  return `<div class="ov-tabs">
-    <button class="ov-tab ${contactTab === 'feedback' ? 'active' : ''}" onclick="setTab('feedback')">Give feedback</button>
-    <button class="ov-tab ${contactTab === 'contrib'  ? 'active' : ''}" onclick="setTab('contrib')">Submit a contribution</button>
-  </div>
-  ${contactTab === 'feedback' ? fbBody : ctBody}`;
+  if (contactTab === 'feedback') {
+    wrap.appendChild(buildIntroBlock('fb', siteContent.feedback_intro));
+    wrap.appendChild(buildFormFields('fb', [
+      { id: 'name', label: 'Your name' },
+      { id: 'email', label: 'Your email', type: 'email' },
+      { id: 'msg', label: 'Email body', textarea: true },
+    ]));
+    const row = document.createElement('div'); row.className = 'ov-btn-row';
+    const btn = document.createElement('button'); btn.className = 'ov-submit'; btn.textContent = 'Send feedback'; btn.onclick = () => sendForm('fb');
+    row.appendChild(btn); wrap.appendChild(row);
+    const sent = document.createElement('div'); sent.className = 'ov-sent'; sent.id = 'fb-sent'; sent.textContent = 'Sent! Thank you for your feedback.';
+    wrap.appendChild(sent);
+  } else {
+    wrap.appendChild(buildIntroBlock('ct', siteContent.contrib_intro));
+    wrap.appendChild(buildFormFields('ct', [
+      { id: 'name', label: 'Your name' },
+      { id: 'email', label: 'Your email', type: 'email' },
+      { id: 'branch', label: 'Name of submission' },
+      { id: 'msg', label: 'Email body', textarea: true },
+    ]));
+    const row = document.createElement('div'); row.className = 'ov-btn-row';
+    const btn = document.createElement('button'); btn.className = 'ov-submit'; btn.textContent = 'Submit contribution'; btn.onclick = () => sendForm('ct');
+    row.appendChild(btn); wrap.appendChild(row);
+    const sent = document.createElement('div'); sent.className = 'ov-sent'; sent.id = 'ct-sent'; sent.textContent = "Submitted! We'll be in touch.";
+    wrap.appendChild(sent);
+  }
+  return wrap;
 }
 
 function setTab(t) {
   contactTab = t;
-  document.getElementById('ov-content').innerHTML = buildContact();
+  const content = document.getElementById('ov-content');
+  content.innerHTML = '';
+  content.appendChild(buildContact());
 }
 
-function sendForm(type) {
-  const el = document.getElementById(type + '-sent');
-  if (el) el.style.display = 'block';
+function startIntroEdit(kind) {
+  if (!isAdmin) return;
+  document.getElementById(kind + '-intro-text').style.display = 'none';
+  const editArea = document.getElementById(kind + '-intro-edit');
+  editArea.style.display = 'block';
+  editArea.value = kind === 'fb' ? siteContent.feedback_intro : siteContent.contrib_intro;
+  document.getElementById(kind + '-intro-edit-btn').style.display = 'none';
+  document.getElementById(kind + '-intro-save-btn').style.display = 'inline-block';
 }
 
+async function saveIntroEdit(kind) {
+  const v = document.getElementById(kind + '-intro-edit').value.trim();
+  const field = kind === 'fb' ? 'feedback_intro' : 'contrib_intro';
+  const { error } = await supa.from('site_content').update({ [field]: v }).eq('id', 1);
+  if (error) { alert('Save failed.'); return; }
+  siteContent[field] = v;
+  document.getElementById(kind + '-intro-text').textContent = v;
+  document.getElementById(kind + '-intro-text').style.display = 'block';
+  document.getElementById(kind + '-intro-edit').style.display = 'none';
+  document.getElementById(kind + '-intro-edit-btn').style.display = 'inline-block';
+  document.getElementById(kind + '-intro-save-btn').style.display = 'none';
+}
+
+async function sendForm(kind) {
+  const body = document.getElementById(kind + '-msg').value.trim();
+  const sentEl = document.getElementById(kind + '-sent');
+  if (!body) return;
+  const payload = {
+    type: kind === 'fb' ? 'feedback' : 'contribution',
+    name: document.getElementById(kind + '-name').value.trim() || null,
+    email: document.getElementById(kind + '-email').value.trim() || null,
+    branch_name: kind === 'ct' ? (document.getElementById('ct-branch').value.trim() || null) : null,
+    body,
+  };
+  const { error } = await supa.from('messages').insert(payload);
+  if (error) {
+    if (sentEl) { sentEl.style.color = '#FA8072'; sentEl.textContent = 'Something went wrong — please try again later.'; sentEl.style.display = 'block'; }
+    return;
+  }
+  if (sentEl) sentEl.style.display = 'block';
+}
+
+async function buildMessagesPanel() {
+  const wrap = document.createElement('div');
+  const { data, error } = await supa.from('messages').select('*').order('created_at', { ascending: false });
+  if (error) { wrap.className = 'msg-empty'; wrap.textContent = 'Could not load messages.'; return wrap; }
+  if (!data || data.length === 0) { wrap.className = 'msg-empty'; wrap.textContent = 'No messages yet.'; return wrap; }
+
+  data.forEach(m => {
+    const item = document.createElement('div'); item.className = 'msg-item';
+    const meta = document.createElement('div'); meta.className = 'msg-meta';
+    meta.textContent = `${m.type === 'feedback' ? 'Feedback' : 'Contribution'} · ${new Date(m.created_at).toLocaleString()}`;
+    const who = document.createElement('div'); who.className = 'msg-who';
+    who.textContent = [m.name, m.email].filter(Boolean).join(' · ') || 'Anonymous';
+    item.appendChild(meta); item.appendChild(who);
+    if (m.branch_name) {
+      const b = document.createElement('div'); b.className = 'msg-branch'; b.textContent = 'Submission: ' + m.branch_name;
+      item.appendChild(b);
+    }
+    const body = document.createElement('div'); body.className = 'msg-body'; body.textContent = m.body;
+    item.appendChild(body);
+    const del = document.createElement('button'); del.className = 'ov-close'; del.textContent = 'Delete';
+    del.onclick = async () => { await supa.from('messages').delete().eq('id', m.id); showOverlay('messages'); };
+    item.appendChild(del);
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
 
 function closeOverlay() {
   document.getElementById('overlay-panel').classList.remove('open');
 }
 
 /* ════════════════════════════════════════
-   BREADCRUMB — builds lineage path from
-   any person back up to root
+   BREADCRUMB
    ════════════════════════════════════════ */
-
-/* Build a parent lookup from the conns array:
-   childId -> [parentId, parentId, ...] */
 function buildParentMap() {
   const map = {};
-  conns.forEach(([parent, child]) => {
+  connsArr.forEach(([parent, child]) => {
     if (!map[child]) map[child] = [];
     map[child].push(parent);
   });
   return map;
 }
 
-/* Return the shortest ancestor path from id → root as an array
-   [ rootId, ..., grandparentId, parentId, id ] */
 function getLineage(id) {
   const parentMap = buildParentMap();
-
   function climb(current, path) {
     const parents = parentMap[current];
-    if (!parents || parents.length === 0) {
-      return [current, ...path];          /* reached root */
-    }
-    /* follow the first (primary) parent up the tree */
+    if (!parents || parents.length === 0) return [current, ...path];
     return climb(parents[0], [current, ...path]);
   }
-
   return climb(id, []);
 }
 
 function renderBreadcrumb(id) {
   const bar = document.getElementById('breadcrumb-bar');
   const lineage = getLineage(id);
+  bar.innerHTML = '';
 
-  /* If this is the root itself, no breadcrumb needed */
-  if (lineage.length <= 1) {
-    bar.innerHTML = '';
-    bar.classList.remove('visible');
-    return;
-  }
+  if (lineage.length <= 1) { bar.classList.remove('visible'); return; }
 
   bar.classList.add('visible');
-  bar.innerHTML = lineage.map((pid, idx) => {
+  lineage.forEach((pid, idx) => {
     const person = people.find(p => p.id === pid);
-    const name   = person ? person.name : pid;
+    const name = person ? person.name : pid;
     const isLast = idx === lineage.length - 1;
-
+    const item = document.createElement('span'); item.className = 'bc-item';
     if (isLast) {
-      return `<span class="bc-item"><span class="bc-current">${name}</span></span>`;
+      const cur = document.createElement('span'); cur.className = 'bc-current'; cur.textContent = name;
+      item.appendChild(cur);
+    } else {
+      const link = document.createElement('button'); link.className = 'bc-link'; link.textContent = name; link.title = 'Go to ' + name;
+      link.onclick = () => openPanel(pid);
+      item.appendChild(link);
+      const sep = document.createElement('span'); sep.className = 'bc-sep'; sep.textContent = '›';
+      item.appendChild(sep);
     }
-    const sep = idx < lineage.length - 1
-      ? `<span class="bc-sep" aria-hidden="true"> › </span>` : '';
-    return `<span class="bc-item">
-      <button class="bc-link" onclick="openPanel('${pid}')" title="Go to ${name}">${name}</button>
-      ${sep}
-    </span>`;
-  }).join('');
+    bar.appendChild(item);
+  });
 }
 
 /* ════════════════════════════════════════
    INIT
    ════════════════════════════════════════ */
-buildTree();
-updateVis();
+boot();
 </script>
 </body>
 </html>
