@@ -515,14 +515,7 @@ function renderSrcs(id) {
 /* ════════════════════════════════════════
    ABOUT PAGE EDITING
    ════════════════════════════════════════ */
-function startAboutEdit() {
-  document.getElementById('about-body-text').style.display = 'none';
-  document.getElementById('about-textarea').style.display  = 'block';
-  document.getElementById('about-textarea').value          = aboutText;
-  document.getElementById('about-edit-btn').style.display  = 'none';
-  document.getElementById('about-save-btn').style.display  = 'inline-block';
-  document.getElementById('about-textarea').focus();
-}
+
 
 function saveAbout() {
   const v = document.getElementById('about-textarea').value.trim();
