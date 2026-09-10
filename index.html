@@ -62,7 +62,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .about-textarea{display:none;width:100%;max-width:640px;min-height:160px;background:#2A1508;border:1px solid #5a3520;color:#fff;padding:12px;font-size:14px;font-family:Georgia,serif;line-height:1.8;margin-bottom:16px;resize:vertical;}
 
 /* ── DETAIL PANEL (PROFILE SIDEBAR) ── */
-#detail-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:190;}
+#detail-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;}
 #detail-backdrop.visible{display:block;}
 #detail-panel{position:fixed;top:0;left:-380px;width:350px;height:100%;background:#2A1508;border-right:1px solid #5a3520;z-index:200;display:flex;flex-direction:column;transition:left .38s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
 #detail-panel.open{left:0;}
@@ -324,6 +324,7 @@ const RW = 160, RH = 100;
 const HGAP = 100;
 const ROW_BASE_Y = 180, ROW_GAP_Y = 160; // generation 1 sits at ROW_BASE_Y, each deeper generation adds ROW_GAP_Y — no fixed cap on how many generations
 const CONNECTOR_GAP = 8;
+const NODE_LABEL_H = 20; // room for the name label under a node's photo, so lines start below it instead of crossing through it
 
 function rowY(gen) { return ROW_BASE_Y + (gen - 1) * ROW_GAP_Y; }
 function maxGeneration() { return people.reduce((m, p) => Math.max(m, p.generation ?? 0), 0); }
@@ -530,7 +531,7 @@ function buildTree() {
     if (!pa || !pb) return;
     let x1, y1;
     if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + RH + CONNECTOR_GAP; }
-    else              { x1 = pa.x;          y1 = pa.y + NH + CONNECTOR_GAP; }
+    else              { x1 = pa.x;          y1 = pa.y + NH + NODE_LABEL_H + CONNECTOR_GAP; }
     const x2 = pb.x;
     const y2 = pb.y - CONNECTOR_GAP;
     const my = Math.round((y1 + y2) / 2);
