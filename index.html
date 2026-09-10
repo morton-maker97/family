@@ -217,8 +217,15 @@ body.admin-mode #nav{top:32px;}
         <input class="ov-input" id="edit-rel" type="text">
         <div class="dp-label">Icon (emoji, used when no photo)</div>
         <input class="ov-input" id="edit-icon" type="text" maxlength="8">
-        <div class="dp-label">Photo URL (optional)</div>
-        <input class="ov-input" id="edit-photo" type="text" placeholder="https://…">
+        <div class="dp-label">Photo</div>
+        <input class="ov-input" id="edit-photo" type="text" placeholder="https://… (or upload a file below)">
+        <div style="display:flex;align-items:center;gap:8px;margin:-4px 0 8px;">
+          <input type="file" id="photo-file-input" accept="image/*" style="display:none;" onchange="handlePhotoFileChosen(event)">
+          <button type="button" class="desc-edit-inline-btn" onclick="document.getElementById('photo-file-input').click()">
+            <i class="ti ti-upload" aria-hidden="true"></i> Upload from computer
+          </button>
+          <span id="photo-upload-status" style="font-size:11px;color:#c8a882;"></span>
+        </div>
         <div class="dp-label">Description</div>
       </div>
       <div id="detail-desc-text" style="font-size:13px;color:#c8a882;line-height:1.6;min-height:36px;white-space:pre-wrap;"></div>
@@ -588,6 +595,7 @@ function startPersonEdit() {
   document.getElementById('edit-rel').value   = p.rel || '';
   document.getElementById('edit-icon').value  = p.icon || '';
   document.getElementById('edit-photo').value = p.photo_url || '';
+  document.getElementById('photo-upload-status').textContent = '';
   document.getElementById('detail-edit-area').value = p.description || '';
   document.getElementById('person-edit-fields').style.display = 'flex';
   document.getElementById('detail-edit-area').style.display = 'block';
@@ -602,6 +610,31 @@ function exitPersonEdit() {
   document.getElementById('detail-desc-text').style.display = 'block';
   document.getElementById('desc-save-btn').style.display = 'none';
   document.getElementById('desc-edit-btn').style.display = 'inline-block';
+}
+
+async function handlePhotoFileChosen(e) {
+  const file = e.target.files[0];
+  e.target.value = ''; // allow re-choosing the same file later
+  if (!file || !activeId) return;
+  const statusEl = document.getElementById('photo-upload-status');
+
+  if (!file.type.startsWith('image/')) { statusEl.textContent = 'Please choose an image file.'; return; }
+  if (file.size > 5 * 1024 * 1024) { statusEl.textContent = 'Please choose an image under 5MB.'; return; }
+
+  statusEl.textContent = 'Uploading…';
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const path = `${activeId}.${ext}`;
+
+  const { error: uploadError } = await supa.storage.from('photos')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (uploadError) {
+    statusEl.textContent = 'Upload failed — you may need to sign in again as admin.';
+    return;
+  }
+
+  const { data } = supa.storage.from('photos').getPublicUrl(path);
+  document.getElementById('edit-photo').value = data.publicUrl + '?v=' + Date.now();
+  statusEl.textContent = 'Uploaded — click Save to apply.';
 }
 
 async function savePerson() {
