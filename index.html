@@ -20,7 +20,7 @@ button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
 .nav-btn{font-size:12px;background:none;border:1px solid #5a3520;color:#fff;padding:6px 16px;}
 .nav-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
 .hamburger-btn{display:none;font-size:16px;padding:6px 10px;line-height:1;}
-#nav-extra{display:flex;gap:8px;align-items:center;}
+#nav-extra{display:flex;gap:8px;align-items:center;overflow-wrap:break-word;word-break:break-word;}
 #navdrawer-backdrop{display:none;}
 
 @media (max-width:680px){
@@ -31,7 +31,7 @@ button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
     flex-direction:column;align-items:stretch;gap:8px;
     padding:60px 16px 16px;
     transition:right .38s cubic-bezier(.4,0,.2,1);
-    z-index:250;overflow-y:auto;
+    z-index:250;overflow-y:auto;overflow-x:hidden;
   }
   #nav-extra.open{right:0;}
   #nav-extra .nav-btn{width:100%;text-align:left;}
@@ -85,7 +85,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 /* ── DETAIL PANEL (PROFILE SIDEBAR) ── */
 #detail-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;}
 #detail-backdrop.visible{display:block;}
-#detail-panel{position:fixed;top:0;left:-380px;width:350px;height:100%;background:#2A1508;border-right:1px solid #5a3520;z-index:200;display:flex;flex-direction:column;transition:left .38s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
+#detail-panel{position:fixed;top:0;left:-380px;width:350px;height:100%;background:#2A1508;border-right:1px solid #5a3520;z-index:200;display:flex;flex-direction:column;transition:left .38s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden;overflow-wrap:break-word;word-break:break-word;}
 #detail-panel.open{left:0;}
 .dp-inner{padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
 .back-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:#fff;background:none;border:none;padding:0;}
@@ -103,7 +103,11 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 #sources-list{display:flex;flex-direction:column;gap:5px;}
 .src-item{display:flex;align-items:flex-start;gap:5px;font-size:11px;color:#c8a882;line-height:1.5;}
 .src-num{color:#8a6040;min-width:14px;}
-.src-del{background:none;border:none;color:#5a3520;font-size:13px;margin-left:auto;padding:0 2px;cursor:pointer;}
+.src-num a{color:#c8a882;text-decoration:underline;text-underline-offset:2px;}
+.src-num a:hover{color:#FA8072;}
+.src-edit{background:none;border:none;color:#5a3520;font-size:11px;margin-left:auto;padding:0 2px;cursor:pointer;}
+.src-edit:hover{color:#FA8072;}
+.src-del{background:none;border:none;color:#5a3520;font-size:13px;padding:0 2px;cursor:pointer;}
 .src-del:hover{color:#FA8072;}
 #person-edit-fields{display:none;flex-direction:column;gap:2px;margin-bottom:8px;}
 #person-edit-fields .ov-input{margin-bottom:8px;}
@@ -121,7 +125,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 #overlay-panel{display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;}
 #overlay-panel.open{display:flex;}
 #overlay-bg{position:fixed;inset:0;background:rgba(20,8,2,.85);}
-#overlay-box{position:relative;background:#2A1508;border:1px solid #5a3520;padding:28px;width:400px;max-width:96vw;z-index:2;}
+#overlay-box{position:relative;background:#2A1508;border:1px solid #5a3520;padding:28px;width:400px;max-width:96vw;z-index:2;overflow-wrap:break-word;word-break:break-word;}
 #overlay-box h3{font-size:15px;color:#fff;margin-bottom:16px;}
 
 .ov-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid #5a3520;}
@@ -298,12 +302,16 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <div class="dp-label">Sources &amp; citations</div>
       <div id="sources-list"></div>
       <textarea id="source-input" class="dp-textarea" style="display:none;margin-top:8px;" placeholder="Paste a source, citation, or URL…"></textarea>
+      <input id="source-url-input" class="ov-input" type="url" style="display:none;margin-top:8px;" placeholder="Optional link for the citation number (e.g. https://…)">
       <div style="display:none;margin-top:10px;" id="src-btn-row">
         <button class="dp-btn" id="src-add-btn" onclick="startSrcAdd()">
           <i class="ti ti-plus" aria-hidden="true"></i> Add source
         </button>
         <button class="dp-btn" id="src-save-btn" style="display:none;" onclick="saveSrc()">
           <i class="ti ti-check" aria-hidden="true"></i> Save
+        </button>
+        <button class="dp-btn" id="src-cancel-btn" style="display:none;" onclick="cancelSrcEdit()">
+          Cancel
         </button>
       </div>
     </div>
@@ -690,9 +698,7 @@ function openPanel(id) {
   document.getElementById('detail-rel').textContent  = p.rel;
   document.getElementById('detail-desc-text').textContent = p.description || 'No description yet.';
   exitPersonEdit();
-  document.getElementById('source-input').style.display  = 'none';
-  document.getElementById('src-save-btn').style.display  = 'none';
-  document.getElementById('src-add-btn').style.display   = 'inline-block';
+  cancelSrcEdit();
   renderSrcs(id);
   renderBreadcrumb(id);
   refreshPersonAdminActions();
@@ -913,27 +919,67 @@ async function deletePerson() {
 /* ════════════════════════════════════════
    SOURCES
    ════════════════════════════════════════ */
+let editingSourceId = null;
+
 function startSrcAdd() {
-  document.getElementById('source-input').style.display  = 'block';
-  document.getElementById('src-save-btn').style.display  = 'inline-block';
-  document.getElementById('src-add-btn').style.display   = 'none';
+  editingSourceId = null;
+  document.getElementById('source-input').value = '';
+  document.getElementById('source-url-input').value = '';
+  document.getElementById('source-input').style.display     = 'block';
+  document.getElementById('source-url-input').style.display = 'block';
+  document.getElementById('src-save-btn').style.display   = 'inline-block';
+  document.getElementById('src-cancel-btn').style.display = 'inline-block';
+  document.getElementById('src-add-btn').style.display    = 'none';
   document.getElementById('source-input').focus();
+}
+
+function startSrcEdit(srcId) {
+  const src = (sourcesMap[activeId] || []).find(s => s.id === srcId);
+  if (!src) return;
+  editingSourceId = srcId;
+  document.getElementById('source-input').value = src.text;
+  document.getElementById('source-url-input').value = src.url || '';
+  document.getElementById('source-input').style.display     = 'block';
+  document.getElementById('source-url-input').style.display = 'block';
+  document.getElementById('src-save-btn').style.display   = 'inline-block';
+  document.getElementById('src-cancel-btn').style.display = 'inline-block';
+  document.getElementById('src-add-btn').style.display    = 'none';
+  document.getElementById('source-input').focus();
+}
+
+function cancelSrcEdit() {
+  editingSourceId = null;
+  document.getElementById('source-input').value = '';
+  document.getElementById('source-url-input').value = '';
+  document.getElementById('source-input').style.display     = 'none';
+  document.getElementById('source-url-input').style.display = 'none';
+  document.getElementById('src-save-btn').style.display   = 'none';
+  document.getElementById('src-cancel-btn').style.display = 'none';
+  document.getElementById('src-add-btn').style.display    = 'inline-block';
 }
 
 async function saveSrc() {
   if (!activeId) return;
-  const v = document.getElementById('source-input').value.trim(); if (!v) return;
-  const nextOrder = (sourcesMap[activeId] || []).length;
-  const { data, error } = await supa.from('sources')
-    .insert({ person_id: activeId, text: v, sort_order: nextOrder })
-    .select().single();
-  if (error) { alert('Could not add source — you may need to sign in again as admin.'); return; }
-  if (!sourcesMap[activeId]) sourcesMap[activeId] = [];
-  sourcesMap[activeId].push(data);
-  document.getElementById('source-input').value = '';
-  document.getElementById('source-input').style.display = 'none';
-  document.getElementById('src-save-btn').style.display  = 'none';
-  document.getElementById('src-add-btn').style.display   = 'inline-block';
+  const text = document.getElementById('source-input').value.trim();
+  const url = document.getElementById('source-url-input').value.trim() || null;
+  if (!text) return;
+
+  if (editingSourceId) {
+    const { error } = await supa.from('sources').update({ text, url }).eq('id', editingSourceId);
+    if (error) { alert('Could not save changes — you may need to sign in again as admin.'); return; }
+    const src = (sourcesMap[activeId] || []).find(s => s.id === editingSourceId);
+    if (src) { src.text = text; src.url = url; }
+  } else {
+    const nextOrder = (sourcesMap[activeId] || []).length;
+    const { data, error } = await supa.from('sources')
+      .insert({ person_id: activeId, text, url, sort_order: nextOrder })
+      .select().single();
+    if (error) { alert('Could not add source — you may need to sign in again as admin.'); return; }
+    if (!sourcesMap[activeId]) sourcesMap[activeId] = [];
+    sourcesMap[activeId].push(data);
+  }
+
+  cancelSrcEdit();
   renderSrcs(activeId);
 }
 
@@ -941,6 +987,7 @@ async function delSrc(srcId) {
   const { error } = await supa.from('sources').delete().eq('id', srcId);
   if (error) { alert('Could not delete source.'); return; }
   sourcesMap[activeId] = (sourcesMap[activeId] || []).filter(s => s.id !== srcId);
+  if (editingSourceId === srcId) cancelSrcEdit();
   renderSrcs(activeId);
 }
 
@@ -950,12 +997,27 @@ function renderSrcs(id) {
   (sourcesMap[id] || []).forEach((s, i) => {
     const row = document.createElement('div');
     row.className = 'src-item';
-    const num = document.createElement('span'); num.className = 'src-num'; num.textContent = `[${i + 1}]`;
+
+    const num = document.createElement('span'); num.className = 'src-num';
+    if (s.url) {
+      const link = document.createElement('a');
+      link.href = s.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = `[${i + 1}]`;
+      num.appendChild(link);
+    } else {
+      num.textContent = `[${i + 1}]`;
+    }
+
     const txt = document.createElement('span'); txt.style.flex = '1'; txt.textContent = s.text;
     row.appendChild(num); row.appendChild(txt);
     if (isAdmin) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'src-edit'; editBtn.textContent = 'Edit'; editBtn.title = 'Edit this source';
+      editBtn.onclick = () => startSrcEdit(s.id);
+      row.appendChild(editBtn);
+
       const del = document.createElement('button');
-      del.className = 'src-del'; del.textContent = '×';
+      del.className = 'src-del'; del.textContent = '×'; del.title = 'Delete this source';
       del.onclick = () => delSrc(s.id);
       row.appendChild(del);
     }
