@@ -159,6 +159,14 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .crop-hint{font-size:11px;color:#c8a882;text-align:center;margin-bottom:16px;}
 .crop-zoom-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;color:#c8a882;font-size:14px;}
 .crop-zoom-row input[type=range]{flex:1;}
+.filter-presets{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px;}
+.filter-preset-btn{font-size:11px;padding:5px 10px;border:1px solid #5a3520;background:none;color:#c8a882;}
+.filter-preset-btn:hover{color:#FA8072;border-color:#FA8072;}
+.filter-preset-btn.active{background:#FA8072;color:#14451e;border-color:#FA8072;}
+.filter-slider-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:11px;color:#c8a882;}
+.filter-slider-row label{width:74px;flex-shrink:0;}
+.filter-slider-row input[type=range]{flex:1;}
+.filter-slider-row .filter-value{width:36px;text-align:right;flex-shrink:0;}
 
 #admin-banner{display:none;position:sticky;top:0;z-index:150;padding:6px 12px;background:#FA8072;color:#14451e;font-size:12px;font-weight:500;letter-spacing:.02em;text-align:center;line-height:1.4;}
 </style>
@@ -263,7 +271,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
             <i class="ti ti-upload" aria-hidden="true"></i> Upload from computer
           </button>
           <button type="button" class="desc-edit-inline-btn" onclick="editPhotoCrop()">
-            <i class="ti ti-crop" aria-hidden="true"></i> Adjust crop
+            <i class="ti ti-crop" aria-hidden="true"></i> Edit photo
           </button>
         </div>
         <div style="margin:-4px 0 8px;">
@@ -472,11 +480,18 @@ async function doLogout() {
    DOM-SAFE BUILDERS (avoid innerHTML for
    any data that came from the database)
    ════════════════════════════════════════ */
+function buildFilterString(p) {
+  const b = p.photo_brightness ?? 100, c = p.photo_contrast ?? 100, s = p.photo_saturate ?? 100,
+        g = p.photo_grayscale ?? 0, sp = p.photo_sepia ?? 0;
+  return `brightness(${b}%) contrast(${c}%) saturate(${s}%) grayscale(${g}%) sepia(${sp}%)`;
+}
+
 function applyCropStyle(img, p) {
   const x = p.photo_pos_x ?? 50, y = p.photo_pos_y ?? 50, z = p.photo_zoom ?? 1;
   img.style.objectPosition = x + '% ' + y + '%';
   img.style.transform = 'scale(' + z + ')';
   img.style.transformOrigin = 'center';
+  img.style.filter = buildFilterString(p);
 }
 
 function buildAvatar(p, className) {
@@ -987,7 +1002,7 @@ async function saveQuote() {
 
 async function showOverlay(type) {
   closeNavDrawer();
-  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages', crop: 'Adjust photo crop', 'add-person': 'Add a person' };
+  const titles = { contact: 'Contact', quote: 'Edit quote', login: 'Admin sign in', messages: 'Messages', crop: 'Edit photo', 'add-person': 'Add a person' };
   document.getElementById('ov-title').textContent = titles[type] || '';
   const content = document.getElementById('ov-content');
   content.innerHTML = '';
@@ -1029,9 +1044,20 @@ async function showOverlay(type) {
 function editPhotoCrop() {
   if (!isAdmin || !activeId) return;
   const url = document.getElementById('edit-photo').value.trim();
-  if (!url) { alert('Add a photo first (paste a URL or upload one), then adjust its crop.'); return; }
+  if (!url) { alert('Add a photo first (paste a URL or upload one), then edit it.'); return; }
   showOverlay('crop');
 }
+
+const FILTER_DEFAULTS = { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, sepia: 0 };
+const FILTER_PRESETS = [
+  { name: 'None',    values: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0,   sepia: 0  } },
+  { name: 'B&W',     values: { brightness: 100, contrast: 105, saturate: 100, grayscale: 100, sepia: 0  } },
+  { name: 'Sepia',   values: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0,   sepia: 100 } },
+  { name: 'Vintage', values: { brightness: 95,  contrast: 90,  saturate: 80,  grayscale: 0,   sepia: 35 } },
+  { name: 'Vivid',   values: { brightness: 105, contrast: 115, saturate: 140, grayscale: 0,   sepia: 0  } },
+  { name: 'Warm',    values: { brightness: 102, contrast: 100, saturate: 110, grayscale: 0,   sepia: 25 } },
+  { name: 'Cool',    values: { brightness: 103, contrast: 105, saturate: 85,  grayscale: 0,   sepia: 0  } },
+];
 
 function buildCropEditor() {
   return new Promise((resolve) => {
@@ -1045,6 +1071,11 @@ function buildCropEditor() {
         x: p.photo_pos_x ?? 50,
         y: p.photo_pos_y ?? 50,
         zoom: p.photo_zoom ?? 1,
+        brightness: p.photo_brightness ?? 100,
+        contrast: p.photo_contrast ?? 100,
+        saturate: p.photo_saturate ?? 100,
+        grayscale: p.photo_grayscale ?? 0,
+        sepia: p.photo_sepia ?? 0,
         naturalW: probe.naturalWidth,
         naturalH: probe.naturalHeight,
         size: 260,
@@ -1059,9 +1090,13 @@ function buildCropEditor() {
       img.src = url; img.alt = '';
       viewport.appendChild(img);
 
+      function filterString() {
+        return `brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturate}%) grayscale(${state.grayscale}%) sepia(${state.sepia}%)`;
+      }
       function render() {
         img.style.objectPosition = state.x + '% ' + state.y + '%';
         img.style.transform = 'scale(' + state.zoom + ')';
+        img.style.filter = filterString();
       }
       render();
 
@@ -1105,16 +1140,85 @@ function buildCropEditor() {
       const plus = document.createElement('span'); plus.textContent = '+';
       zoomRow.appendChild(minus); zoomRow.appendChild(zoomSlider); zoomRow.appendChild(plus);
 
+      // ── Filters ──
+      const filterHint = document.createElement('div'); filterHint.className = 'crop-hint';
+      filterHint.textContent = 'Filters';
+      filterHint.style.textAlign = 'left';
+      filterHint.style.marginTop = '4px';
+      filterHint.style.fontWeight = '500';
+      filterHint.style.color = '#fff';
+
+      const presetRow = document.createElement('div'); presetRow.className = 'filter-presets';
+      const presetBtns = [];
+      FILTER_PRESETS.forEach(preset => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'filter-preset-btn'; btn.textContent = preset.name;
+        btn.onclick = () => {
+          Object.assign(state, preset.values);
+          syncSlidersFromState();
+          render();
+          setActivePreset(btn);
+        };
+        presetBtns.push(btn);
+        presetRow.appendChild(btn);
+      });
+      function setActivePreset(activeBtn) {
+        presetBtns.forEach(b => b.classList.toggle('active', b === activeBtn));
+      }
+      function clearActivePreset() { setActivePreset(null); }
+
+      const sliderInputs = {};
+      function makeSlider(labelText, key, min, max) {
+        const row = document.createElement('div'); row.className = 'filter-slider-row';
+        const label = document.createElement('label'); label.textContent = labelText;
+        const input = document.createElement('input');
+        input.type = 'range'; input.min = String(min); input.max = String(max); input.step = '1';
+        input.value = String(state[key]);
+        const valueEl = document.createElement('span'); valueEl.className = 'filter-value'; valueEl.textContent = state[key] + '%';
+        input.oninput = () => {
+          state[key] = parseFloat(input.value);
+          valueEl.textContent = input.value + '%';
+          clearActivePreset();
+          render();
+        };
+        sliderInputs[key] = { input, valueEl };
+        row.appendChild(label); row.appendChild(input); row.appendChild(valueEl);
+        return row;
+      }
+      function syncSlidersFromState() {
+        Object.keys(sliderInputs).forEach(key => {
+          sliderInputs[key].input.value = String(state[key]);
+          sliderInputs[key].valueEl.textContent = state[key] + '%';
+        });
+      }
+
+      const filterSliders = document.createElement('div');
+      filterSliders.appendChild(makeSlider('Brightness', 'brightness', 0, 200));
+      filterSliders.appendChild(makeSlider('Contrast', 'contrast', 0, 200));
+      filterSliders.appendChild(makeSlider('Saturation', 'saturate', 0, 200));
+      filterSliders.appendChild(makeSlider('Grayscale', 'grayscale', 0, 100));
+      filterSliders.appendChild(makeSlider('Sepia', 'sepia', 0, 100));
+
       const btnRow = document.createElement('div'); btnRow.className = 'ov-btn-row';
       const resetBtn = document.createElement('button'); resetBtn.className = 'ov-close'; resetBtn.textContent = 'Reset';
-      resetBtn.onclick = () => { state.x = 50; state.y = 50; state.zoom = 1; zoomSlider.value = '1'; render(); };
-      const saveBtn = document.createElement('button'); saveBtn.className = 'ov-submit'; saveBtn.textContent = 'Save crop';
+      resetBtn.onclick = () => {
+        state.x = 50; state.y = 50; state.zoom = 1;
+        Object.assign(state, FILTER_DEFAULTS);
+        zoomSlider.value = '1';
+        syncSlidersFromState();
+        clearActivePreset();
+        render();
+      };
+      const saveBtn = document.createElement('button'); saveBtn.className = 'ov-submit'; saveBtn.textContent = 'Save';
       saveBtn.onclick = async () => {
-        const { error } = await supa.from('people')
-          .update({ photo_pos_x: state.x, photo_pos_y: state.y, photo_zoom: state.zoom })
-          .eq('id', activeId);
+        const updates = {
+          photo_pos_x: state.x, photo_pos_y: state.y, photo_zoom: state.zoom,
+          photo_brightness: state.brightness, photo_contrast: state.contrast,
+          photo_saturate: state.saturate, photo_grayscale: state.grayscale, photo_sepia: state.sepia,
+        };
+        const { error } = await supa.from('people').update(updates).eq('id', activeId);
         if (error) { alert('Save failed — you may need to sign in again as admin.'); return; }
-        Object.assign(p, { photo_pos_x: state.x, photo_pos_y: state.y, photo_zoom: state.zoom });
+        Object.assign(p, updates);
         closeOverlay();
         buildTree();
         updateVis();
@@ -1126,6 +1230,9 @@ function buildCropEditor() {
       wrap.appendChild(hint);
       wrap.appendChild(viewport);
       wrap.appendChild(zoomRow);
+      wrap.appendChild(filterHint);
+      wrap.appendChild(presetRow);
+      wrap.appendChild(filterSliders);
       wrap.appendChild(btnRow);
       resolve(wrap);
     };

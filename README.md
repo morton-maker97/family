@@ -44,7 +44,7 @@ Open the site, click **Admin** in the top-right, and sign in with the email/pass
 
 ## What's editable, and what isn't (yet)
 
-Admins can edit, from the page itself: each person's name, relationship label, photo (uploaded from your computer, pasted as a URL, or drag-to-reposition/zoom cropped), emoji icon, description, and sources; the About page text; the root quote; and the feedback/contribution form intros.
+Admins can edit, from the page itself: each person's name, relationship label, photo (uploaded from your computer, pasted as a URL, drag-to-reposition/zoom cropped, and adjusted with filter presets or brightness/contrast/saturation/grayscale/sepia sliders), emoji icon, description, and sources; the About page text; the root quote; and the feedback/contribution form intros.
 
 Admins can also **add and remove people** directly from a person's panel:
 - **Add descendant** creates a new person connected one generation below whoever's panel is open (e.g. open "Father" and add a "Grandmother" below him). There's no limit on how many generations deep the tree can go — the layout expands automatically.
