@@ -56,7 +56,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 
 /* ── ROOT ROW ── */
 #root-row{position:absolute;display:flex;align-items:center;gap:18px;}
-#root-photo{width:90px;height:90px;border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;flex-shrink:0;transition:border-color .2s;color:#fff;overflow:hidden;}
+#root-photo{width:480px;height:270px;border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:96px;cursor:pointer;flex-shrink:0;transition:border-color .2s;color:#fff;overflow:hidden;}
 #root-photo:hover{border-color:#FA8072;}
 #root-name-label{font-size:12px;font-weight:500;color:#fff;margin-bottom:5px;}
 #root-quote{font-size:12px;font-style:italic;color:#c8a882;line-height:1.5;border-left:2px solid #fff;padding-left:8px;max-width:180px;}
@@ -349,9 +349,9 @@ let isAdmin     = false;
 
 /* layout constants */
 const NW = 90, NH = 90;
-const RW = 90, RH = 90;
+const RW = 480, RH = 270; // root photo: 16:9 landscape, 3x the size of every other photo
 const HGAP = 100;
-const ROW_BASE_Y = 180, ROW_GAP_Y = 160; // generation 1 sits at ROW_BASE_Y, each deeper generation adds ROW_GAP_Y — no fixed cap on how many generations
+const ROW_BASE_Y = 350, ROW_GAP_Y = 160; // generation 1 sits at ROW_BASE_Y (pushed down to clear the larger root photo), each deeper generation adds ROW_GAP_Y — no fixed cap on how many generations
 const CONNECTOR_GAP = 8;
 const NODE_LABEL_H = 20; // room for the name label under a node's photo, so lines start below it instead of crossing through it
 
