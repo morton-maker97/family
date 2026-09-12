@@ -741,7 +741,7 @@ function buildTree() {
     const pa = pos[a], pb = pos[b];
     if (!pa || !pb) return;
     let x1, y1;
-    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + rootRowHeight + CONNECTOR_GAP; }
+    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + RH + CONNECTOR_GAP; }
     else              { x1 = pa.x;          y1 = pa.y + (nodeHeights[a] ?? (NH + NODE_LABEL_H)) + CONNECTOR_GAP; }
     const x2 = pb.x;
     const y2 = pb.y - CONNECTOR_GAP;
