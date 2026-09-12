@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Archive</title>
+<title>Toni Morrison Tree of Influence</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,6 +63,9 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 #root-photo:hover{border-color:#FA8072;}
 #root-name-label{font-family:'Miss Fajardose',cursive;font-size:68px;font-weight:400;line-height:1.2;color:#fff;margin-bottom:5px;max-width:260px;}
 #root-quote{font-size:12px;font-style:italic;color:#c8a882;line-height:1.5;border-left:2px solid #fff;padding-left:8px;max-width:180px;}
+#root-quote.quote-collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+#root-quote-toggle{display:none;background:none;border:none;color:#fff;font-size:11px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:4px 0 0 10px;font-family:Georgia,serif;}
+#root-quote-toggle:hover{color:#FA8072;}
 #root-quote.editable{cursor:pointer;}
 #root-quote.editable:hover{color:#fff;}
 
@@ -187,7 +190,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 </div>
 
 <nav id="nav">
-  <span class="nav-brand">Family Archive</span>
+  <span class="nav-brand">Toni Morrison Tree of Influence</span>
   <div class="nav-links">
     <button class="nav-btn" onclick="toggleGrid()" id="grid-btn">View as grid</button>
     <button class="nav-btn hamburger-btn" onclick="toggleNavDrawer()" aria-label="Menu">☰</button>
@@ -218,6 +221,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       <div>
         <div id="root-name-label">Your Name</div>
         <div id="root-quote" onclick="editQuote()">"Add a quote or note…"</div>
+        <button id="root-quote-toggle" onclick="toggleQuoteExpand()" style="display:none;">Read less</button>
       </div>
     </div>
   </div>
@@ -359,6 +363,7 @@ let zoomLevel   = 1;
 let gridMode    = false;
 let contactTab  = 'feedback';
 let isAdmin     = false;
+let quoteExpanded = true; // root quote shows fully expanded by default
 
 /* layout constants */
 const NW = 90, NH = 90;
@@ -675,10 +680,20 @@ function buildTree() {
     }
     document.getElementById('root-name-label').textContent = root.name;
   }
-  document.getElementById('root-quote').textContent = siteContent.root_quote;
+  const quoteEl = document.getElementById('root-quote');
+  const quoteToggleEl = document.getElementById('root-quote-toggle');
+  quoteEl.textContent = siteContent.root_quote;
+  quoteEl.classList.remove('quote-collapsed'); // measure the true, un-clamped height first
+  const quoteLineHeight = parseFloat(getComputedStyle(quoteEl).lineHeight) || 18;
+  const quoteOverflows = quoteEl.scrollHeight > quoteLineHeight * 3 + 2;
+  if (!quoteOverflows) quoteExpanded = true; // nothing to collapse — always show it fully
+  quoteEl.classList.toggle('quote-collapsed', quoteOverflows && !quoteExpanded);
+  quoteToggleEl.style.display = quoteOverflows ? 'inline-block' : 'none';
+  quoteToggleEl.textContent = quoteExpanded ? 'Read less' : 'Read more';
 
   const ROOT_ROW_BUFFER = 60;
-  ROW_BASE_Y = 20 + document.getElementById('root-row').offsetHeight + ROOT_ROW_BUFFER;
+  const rootRowHeight = document.getElementById('root-row').offsetHeight;
+  ROW_BASE_Y = 20 + rootRowHeight + ROOT_ROW_BUFFER;
 
   const totalW  = computePos();
   const totalH  = rowY(Math.max(1, maxGeneration())) + NH + 100;
@@ -726,7 +741,7 @@ function buildTree() {
     const pa = pos[a], pb = pos[b];
     if (!pa || !pb) return;
     let x1, y1;
-    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + RH + CONNECTOR_GAP; }
+    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + rootRowHeight + CONNECTOR_GAP; }
     else              { x1 = pa.x;          y1 = pa.y + (nodeHeights[a] ?? (NH + NODE_LABEL_H)) + CONNECTOR_GAP; }
     const x2 = pb.x;
     const y2 = pb.y - CONNECTOR_GAP;
@@ -1180,6 +1195,12 @@ async function saveAbout() {
    OVERLAY (CONTACT / QUOTE / LOGIN / MESSAGES)
    ════════════════════════════════════════ */
 function editQuote() { if (isAdmin) showOverlay('quote'); }
+
+function toggleQuoteExpand() {
+  quoteExpanded = !quoteExpanded;
+  buildTree();
+  updateVis();
+}
 
 async function saveQuote() {
   const v = document.getElementById('quote-input').value.trim();
