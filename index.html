@@ -745,7 +745,16 @@ function buildTree() {
     else              { x1 = pa.x;          y1 = pa.y + (nodeHeights[a] ?? (NH + NODE_LABEL_H)) + CONNECTOR_GAP; }
     const x2 = pb.x;
     const y2 = pb.y - CONNECTOR_GAP;
-    const my = Math.round((y1 + y2) / 2);
+    let my = Math.round((y1 + y2) / 2);
+    if (a === 'root') {
+      // Root's quote sits beside the photo, not below it, so the vertical
+      // drop never crosses it — but the horizontal jog toward a child can,
+      // if it happens at a height where the quote is still displaying text
+      // (it can be much taller than the photo). Keep the jog below the
+      // quote's actual bottom instead of a naive midpoint.
+      const belowQuote = pos['root'].y + rootRowHeight + CONNECTOR_GAP;
+      my = Math.max(my, Math.min(belowQuote, y2));
+    }
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     line.setAttribute('points', `${x1},${y1} ${x1},${my} ${x2},${my} ${x2},${y2}`);
     line.setAttribute('fill', 'none');
