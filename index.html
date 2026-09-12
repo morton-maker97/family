@@ -601,22 +601,55 @@ function generationIds(gen) {
   return people.filter(p => p.generation === gen).map(p => p.id);
 }
 
+// Clusters each parent's children directly beneath them (recursively), so
+// a person's connector line stays short and unambiguous instead of every
+// row being spread evenly with no regard for who connects to whom.
 function computePos() {
-  const maxGen = maxGeneration();
-  const rows = [];
-  for (let g = 1; g <= maxGen; g++) rows.push(generationIds(g));
-  const maxCols = Math.max(1, ...rows.map(r => r.length));
-  const totalW  = maxCols * (NW + HGAP) + 240;
-  const cx      = totalW / 2;
-  pos['root'] = { x: cx, y: 20 };
-  rows.forEach((ids, i) => {
-    const y = rowY(i + 1);
-    ids.forEach((id, idx) => {
-      const startX = cx - (ids.length - 1) * (NW + HGAP) / 2;
-      pos[id] = { x: startX + idx * (NW + HGAP), y };
+  const childrenMap = {};
+  connsArr.forEach(([parent, child]) => {
+    if (!childrenMap[parent]) childrenMap[parent] = [];
+    childrenMap[parent].push(child);
+  });
+  Object.keys(childrenMap).forEach(pid => {
+    childrenMap[pid].sort((a, b) => {
+      const pa = people.find(p => p.id === a), pb = people.find(p => p.id === b);
+      return (pa?.sort_order ?? 0) - (pb?.sort_order ?? 0);
     });
   });
-  return totalW;
+
+  const SLOT_WIDTH = NW + HGAP;
+  const MARGIN = 60;
+  const visited = new Set();
+
+  function layoutSubtree(nodeId, leftEdgeX) {
+    if (visited.has(nodeId)) return 0; // reached via more than one parent — already placed
+    visited.add(nodeId);
+    const person = people.find(p => p.id === nodeId);
+    const y = nodeId === 'root' ? 20 : rowY(person?.generation ?? 1);
+    const kids = (childrenMap[nodeId] || []).filter(k => !visited.has(k));
+    if (kids.length === 0) {
+      pos[nodeId] = { x: leftEdgeX + SLOT_WIDTH / 2, y };
+      return SLOT_WIDTH;
+    }
+    let cursorX = leftEdgeX;
+    kids.forEach(kid => { cursorX += layoutSubtree(kid, cursorX); });
+    const totalWidth = cursorX - leftEdgeX;
+    pos[nodeId] = { x: leftEdgeX + totalWidth / 2, y };
+    return totalWidth;
+  }
+
+  const treeWidth = layoutSubtree('root', MARGIN);
+
+  // Anyone never reached from root (a broken/missing connection) still gets
+  // shown, appended past the tree's right edge, instead of silently vanishing.
+  let overflowX = MARGIN + treeWidth + SLOT_WIDTH;
+  people.forEach(p => {
+    if (visited.has(p.id)) return;
+    pos[p.id] = { x: overflowX + SLOT_WIDTH / 2, y: rowY(p.generation ?? 1) };
+    overflowX += SLOT_WIDTH;
+  });
+
+  return Math.max(overflowX, MARGIN + treeWidth) + MARGIN;
 }
 
 function buildTree() {
