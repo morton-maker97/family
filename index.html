@@ -14,10 +14,10 @@ body{font-family:Georgia,serif;background:#3B1F0F;color:#fff;min-height:100vh;}
 button{border-radius:0!important;cursor:pointer;font-family:Georgia,serif;}
 
 /* ── NAV ── */
-#nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:48px;background:#2A1508;border-bottom:1px solid #5a3520;position:sticky;top:0;z-index:100;}
+#nav{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;min-height:48px;background:#2A1508;border-bottom:1px solid #5a3520;position:sticky;top:0;z-index:100;}
 .nav-brand{font-size:15px;font-weight:500;color:#fff;letter-spacing:.03em;}
-.nav-links{display:flex;gap:8px;align-items:center;}
-.nav-btn{font-size:12px;background:none;border:1px solid #5a3520;color:#fff;padding:6px 16px;}
+.nav-links{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.nav-btn{font-size:12px;background:none;border:1px solid #5a3520;color:#fff;padding:6px 16px;white-space:nowrap;}
 .nav-btn:hover{background:#FA8072;color:#14451e;border-color:#FA8072;}
 .hamburger-btn{display:none;font-size:16px;padding:6px 10px;line-height:1;}
 #nav-extra{display:flex;gap:8px;align-items:center;overflow-wrap:break-word;word-break:break-word;}
@@ -58,7 +58,7 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .node-photo img,#root-photo img,.grid-card-img img,#detail-photo-wrap img{width:100%;height:100%;object-fit:cover;}
 
 /* ── ROOT ROW ── */
-#root-row{position:absolute;display:flex;align-items:center;gap:18px;}
+#root-row{position:absolute;display:flex;align-items:flex-start;gap:18px;}
 #root-photo{width:480px;height:270px;border:1px solid #fff;background:#2A1508;display:flex;align-items:center;justify-content:center;font-size:96px;cursor:pointer;flex-shrink:0;transition:border-color .2s;color:#fff;overflow:hidden;}
 #root-photo:hover{border-color:#FA8072;}
 #root-name-label{font-family:'Miss Fajardose',cursive;font-size:68px;font-weight:400;line-height:1.2;color:#fff;margin-bottom:5px;max-width:260px;}
