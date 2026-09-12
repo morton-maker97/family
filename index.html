@@ -69,6 +69,27 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 #root-quote.editable{cursor:pointer;}
 #root-quote.editable:hover{color:#fff;}
 
+/* ── MOBILE TREE VIEW ── */
+#mobile-tree-view{display:none;overflow-y:auto;height:calc(100vh - 48px);background:#3B1F0F;}
+#mobile-root-card{position:relative;width:100%;aspect-ratio:16/9;background:#2A1508;overflow:hidden;cursor:pointer;}
+#mobile-root-card img{width:100%;height:100%;object-fit:cover;}
+#mobile-root-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:64px;color:#fff;}
+#mobile-root-caption{position:absolute;left:0;right:0;bottom:0;padding:14px 16px 12px;background:linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,0));}
+#mobile-root-name{font-family:'Miss Fajardose',cursive;font-size:36px;line-height:1.1;color:#fff;}
+#mobile-root-quote{margin:16px;padding-left:10px;border-left:2px solid #fff;font-size:12px;font-style:italic;color:#c8a882;line-height:1.6;}
+#mobile-generations{padding:8px 0 32px;}
+.mobile-gen-row{margin-bottom:26px;}
+.mobile-gen-label{font-size:12px;color:#c8a882;text-transform:uppercase;letter-spacing:.08em;padding:0 16px;margin-bottom:10px;}
+.mobile-gen-scroll{display:flex;gap:12px;overflow-x:auto;padding:0 16px 6px;-webkit-overflow-scrolling:touch;}
+.mobile-card{flex:0 0 auto;width:104px;display:flex;flex-direction:column;align-items:center;cursor:pointer;}
+.mobile-card-photo{width:104px;height:104px;border:1px solid #fff;background:#2A1508;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;}
+.mobile-card-photo img{width:100%;height:100%;object-fit:cover;}
+.mobile-card-name{font-size:11px;color:#fff;margin-top:6px;text-align:center;max-width:104px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+
+@media (max-width:680px){
+  #toolbar{display:none!important;}
+}
+
 /* ── GRID VIEW ── */
 #grid-view{display:none;overflow-y:auto;height:calc(100vh - 96px);padding:24px;background:#3B1F0F;}
 .grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;}
@@ -225,6 +246,18 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
       </div>
     </div>
   </div>
+</div>
+
+<!-- MOBILE TREE VIEW -->
+<div id="mobile-tree-view">
+  <div id="mobile-root-card" onclick="openPanel('root')">
+    <div id="mobile-root-photo">👤</div>
+    <div id="mobile-root-caption">
+      <div id="mobile-root-name">Your Name</div>
+    </div>
+  </div>
+  <div id="mobile-root-quote" onclick="editQuote()">"Add a quote or note…"</div>
+  <div id="mobile-generations"></div>
 </div>
 
 <!-- GRID VIEW -->
@@ -458,6 +491,16 @@ function syncAdminBannerOffset() {
 }
 window.addEventListener('resize', () => { if (isAdmin) syncAdminBannerOffset(); });
 
+let lastIsMobile = isMobileLayout();
+window.addEventListener('resize', () => {
+  const nowMobile = isMobileLayout();
+  if (nowMobile === lastIsMobile) return;
+  lastIsMobile = nowMobile;
+  buildTree();
+  updateVis();
+  if (currentView === 'tree') setView('tree');
+});
+
 function handleAuthClick() {
   closeNavDrawer();
   if (isAdmin) doLogout(); else showOverlay('login');
@@ -658,7 +701,74 @@ function computePos() {
   return Math.max(overflowX, MARGIN + treeWidth) + MARGIN;
 }
 
+function isMobileLayout() {
+  return window.matchMedia('(max-width: 680px)').matches;
+}
+
+function generationLabel(gen) {
+  if (gen <= 1) return 'Parents';
+  const greats = gen - 2;
+  return (greats > 0 ? 'Great-'.repeat(greats) : '') + 'Grandparents';
+}
+
 function buildTree() {
+  if (isMobileLayout()) buildMobileTree();
+  else buildDesktopTree();
+}
+
+function buildMobileTree() {
+  const root = people.find(p => p.id === 'root');
+  const photoWrap = document.getElementById('mobile-root-photo');
+  photoWrap.innerHTML = '';
+  if (root) {
+    if (root.photo_url) {
+      const img = document.createElement('img');
+      img.src = root.photo_url; img.alt = root.name || '';
+      applyCropStyle(img, root);
+      photoWrap.appendChild(img);
+    } else {
+      photoWrap.textContent = root.icon || '👤';
+    }
+    document.getElementById('mobile-root-name').textContent = root.name;
+  }
+  document.getElementById('mobile-root-quote').textContent = siteContent.root_quote;
+
+  const genWrap = document.getElementById('mobile-generations');
+  genWrap.innerHTML = '';
+  const maxGen = maxGeneration();
+  for (let g = 1; g <= maxGen; g++) {
+    const ids = generationIds(g);
+    if (!ids.length) continue;
+    const row = document.createElement('div');
+    row.className = 'mobile-gen-row';
+    const label = document.createElement('div');
+    label.className = 'mobile-gen-label';
+    label.textContent = generationLabel(g);
+    const scroll = document.createElement('div');
+    scroll.className = 'mobile-gen-scroll';
+    ids.forEach(id => {
+      const p = people.find(x => x.id === id); if (!p) return;
+      const card = document.createElement('div');
+      card.className = 'mobile-card';
+      card.onclick = () => openPanel(id);
+      card.appendChild(buildAvatar(p, 'mobile-card-photo'));
+      const nameEl = document.createElement('div');
+      nameEl.className = 'mobile-card-name';
+      nameEl.textContent = p.name;
+      card.appendChild(nameEl);
+      scroll.appendChild(card);
+    });
+    row.appendChild(label);
+    row.appendChild(scroll);
+    genWrap.appendChild(row);
+  }
+
+  buildGrid();
+  document.getElementById('about-body-text').textContent = siteContent.about_text;
+  document.getElementById('about-textarea').value = siteContent.about_text;
+}
+
+function buildDesktopTree() {
   const canvas  = document.getElementById('canvas');
   const svg     = document.getElementById('svg-lines');
 
@@ -741,7 +851,7 @@ function buildTree() {
     const pa = pos[a], pb = pos[b];
     if (!pa || !pb) return;
     let x1, y1;
-    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + rootRowHeight + CONNECTOR_GAP; }
+    if (a === 'root') { x1 = pos['root'].x; y1 = pos['root'].y + RH + CONNECTOR_GAP; }
     else              { x1 = pa.x;          y1 = pa.y + (nodeHeights[a] ?? (NH + NODE_LABEL_H)) + CONNECTOR_GAP; }
     const x2 = pb.x;
     const y2 = pb.y - CONNECTOR_GAP;
@@ -760,6 +870,7 @@ function buildTree() {
 }
 
 function scrollToRoot() {
+  if (isMobileLayout()) return; // mobile is a normal top-to-bottom page, nothing to center
   const wrap = document.getElementById('canvas-wrap');
   const rootPos = pos['root'];
   if (!rootPos) return;
@@ -786,9 +897,14 @@ function buildGrid() {
 /* ════════════════════════════════════════
    VIEW SWITCHING
    ════════════════════════════════════════ */
+let currentView = 'tree';
+
 function setView(view) {
-  document.getElementById('canvas-wrap').style.display  = view === 'tree'  ? 'block' : 'none';
-  document.getElementById('toolbar').style.display      = view === 'tree'  ? 'flex'  : 'none';
+  currentView = view;
+  const mobile = isMobileLayout();
+  document.getElementById('canvas-wrap').style.display      = (view === 'tree' && !mobile) ? 'block' : 'none';
+  document.getElementById('toolbar').style.display          = (view === 'tree' && !mobile) ? 'flex'  : 'none';
+  document.getElementById('mobile-tree-view').style.display = (view === 'tree' && mobile)  ? 'block' : 'none';
   document.getElementById('grid-view').style.display    = view === 'grid'  ? 'block' : 'none';
   document.getElementById('about-page').style.display   = view === 'about' ? 'block' : 'none';
   gridMode = (view === 'grid');
@@ -810,6 +926,7 @@ function zoom(d) {
 }
 
 function updateVis() {
+  if (isMobileLayout()) return; // zoom/fade-by-generation is a desktop-canvas-only concept
   people.filter(p => p.id !== 'root').forEach(p => {
     const el = document.getElementById('node-' + p.id);
     if (!el) return;

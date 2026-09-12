@@ -52,6 +52,14 @@ Admins can also **add and remove people** directly from a person's panel:
 
 Rewiring an *existing* person to a different parent, or giving someone a second parent connection (for blended families), isn't built into the page UI — for that, edit the `connections` table directly in **Supabase → Table Editor** (a full spreadsheet-style admin GUI Supabase gives you for free).
 
+## Mobile
+
+On narrow screens (≤680px), the site switches to a completely different browsing layout instead of shrinking the desktop tree diagram: the root's photo goes full-width with their name overlaid in the corner, followed by each generation as its own horizontally-scrollable row of cards (tap any card to open the same profile panel as desktop). This kicks in and reverts automatically as the browser is resized or a device is rotated — no separate URL or setting.
+
+## robots.txt
+
+`robots.txt` blocks known AI training/scraping crawlers (GPTBot, CCBot, ClaudeBot, etc.) by name, since this site has real people's photos and personal stories, while leaving normal search engines alone so the site stays discoverable. Add or remove `User-agent` blocks there if you want to change that policy.
+
 ## Local development
 
 This is a plain static site — no build step, no `node_modules`. Just open `index.html` in a browser, or serve the folder with any static file server:
