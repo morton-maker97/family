@@ -142,6 +142,8 @@ svg.connectors{position:absolute;top:0;left:0;pointer-events:none;}
 .ov-textarea:focus{border-color:#c8a882;outline:none;}
 
 .desc-text-block{font-size:13px;color:#c8a882;line-height:1.7;margin-bottom:8px;white-space:pre-wrap;}
+.desc-link{color:#FA8072;text-decoration:underline;text-underline-offset:2px;}
+.desc-link:hover{color:#fff;}
 .desc-edit-inline-btn{font-size:11px;padding:5px 10px;border:1px solid #5a3520;background:none;color:#c8a882;}
 .desc-edit-inline-btn:hover{color:#FA8072;border-color:#FA8072;}
 
@@ -491,6 +493,78 @@ async function doLogout() {
    DOM-SAFE BUILDERS (avoid innerHTML for
    any data that came from the database)
    ════════════════════════════════════════ */
+// Renders text that may contain markdown-style links — [label](https://…) —
+// or bare https:// URLs, as real <a> elements, without ever using
+// innerHTML. Plain text stays plain text.
+const LINKED_TEXT_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g;
+
+function renderLinkedText(container, text) {
+  container.innerHTML = '';
+  if (!text) return;
+  const lines = String(text).split('\n');
+  lines.forEach((line, li) => {
+    if (li > 0) container.appendChild(document.createElement('br'));
+    let lastIndex = 0;
+    LINKED_TEXT_RE.lastIndex = 0;
+    let m;
+    while ((m = LINKED_TEXT_RE.exec(line))) {
+      if (m.index > lastIndex) container.appendChild(document.createTextNode(line.slice(lastIndex, m.index)));
+      const a = document.createElement('a');
+      a.href = m[1] !== undefined ? m[2] : m[3];
+      a.textContent = m[1] !== undefined ? m[1] : m[3];
+      a.target = '_blank'; a.rel = 'noopener noreferrer'; a.className = 'desc-link';
+      container.appendChild(a);
+      lastIndex = LINKED_TEXT_RE.lastIndex;
+    }
+    if (lastIndex < line.length) container.appendChild(document.createTextNode(line.slice(lastIndex)));
+  });
+}
+
+// Converts pasted rich-text HTML into plain text that keeps hyperlinks as
+// markdown-style [label](url) — so a plain <textarea> can hold it, and
+// renderLinkedText() turns it back into a real link when displayed.
+function htmlToLinkedPlainText(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const BLOCK_TAGS = ['p', 'div', 'li', 'tr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+  function walk(node) {
+    let out = '';
+    node.childNodes.forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        out += child.textContent;
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const tag = child.tagName.toLowerCase();
+        const href = child.getAttribute && child.getAttribute('href');
+        if (tag === 'a' && href && /^https?:\/\//i.test(href)) {
+          const label = child.textContent.trim();
+          out += label ? `[${label}](${href})` : href;
+        } else if (tag === 'br') {
+          out += '\n';
+        } else if (BLOCK_TAGS.includes(tag)) {
+          out += walk(child) + '\n';
+        } else {
+          out += walk(child);
+        }
+      }
+    });
+    return out;
+  }
+  return walk(doc.body).replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function initDescPasteHandling() {
+  const textarea = document.getElementById('detail-edit-area');
+  textarea.addEventListener('paste', (e) => {
+    const html = e.clipboardData && e.clipboardData.getData('text/html');
+    if (!html) return; // no rich content — let the browser's normal plain-text paste happen
+    e.preventDefault();
+    const converted = htmlToLinkedPlainText(html);
+    const start = textarea.selectionStart, end = textarea.selectionEnd, val = textarea.value;
+    textarea.value = val.slice(0, start) + converted + val.slice(end);
+    const newPos = start + converted.length;
+    textarea.selectionStart = textarea.selectionEnd = newPos;
+  });
+}
+
 function buildFilterString(p) {
   const b = p.photo_brightness ?? 100, c = p.photo_contrast ?? 100, s = p.photo_saturate ?? 100,
         g = p.photo_grayscale ?? 0, sp = p.photo_sepia ?? 0;
@@ -696,7 +770,7 @@ function openPanel(id) {
   }
   document.getElementById('detail-name').textContent = p.name;
   document.getElementById('detail-rel').textContent  = p.rel;
-  document.getElementById('detail-desc-text').textContent = p.description || 'No description yet.';
+  renderLinkedText(document.getElementById('detail-desc-text'), p.description || 'No description yet.');
   exitPersonEdit();
   cancelSrcEdit();
   renderSrcs(id);
@@ -1535,6 +1609,7 @@ function renderBreadcrumb(id) {
 /* ════════════════════════════════════════
    INIT
    ════════════════════════════════════════ */
+initDescPasteHandling();
 boot();
 </script>
 </body>
